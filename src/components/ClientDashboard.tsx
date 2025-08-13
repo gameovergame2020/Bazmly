@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, Check, X } from 'lucide-react';
+import { Calendar, Clock, Check, X, Users, DollarSign, Star } from 'lucide-react';
 import { User } from '../App';
 
 interface ClientDashboardProps {
@@ -22,6 +22,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [showTimeModal, setShowTimeModal] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
 
   // Demo ma'lumotlar - real holatda server'dan keladi
@@ -344,6 +345,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         if (day.isCurrentMonth && day.available) {
                           setSelectedDate(day.fullDate);
                           setSelectedTime('');
+                          setShowTimeModal(true);
                         }
                       }}
                       disabled={!day.isCurrentMonth || !day.available}
@@ -375,184 +377,227 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
               </div>
             </div>
 
-            {/* Selected Date Details */}
-            {selectedDate && (
-              <div className="border-t border-gray-200 pt-8">
-                {/* Date Header with Info */}
-                <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-6 mb-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-xl font-bold text-gray-900 flex items-center mb-2">
-                        <Calendar className="w-6 h-6 mr-3 text-blue-600" />
-                        {new Date(selectedDate).toLocaleDateString('uz-UZ', { 
-                          weekday: 'long', 
-                          month: 'long', 
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
-                      </h4>
-                      <p className="text-gray-600">
-                        Mavjud vaqtlar va qo'shimcha ma'lumotlar
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="bg-green-100 text-green-800 px-3 py-2 rounded-lg text-sm font-medium">
-                        ✓ Mavjud kun
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {getSelectedDayAvailability()?.timeSlots.filter(slot => slot.available).length || 0} ta vaqt mavjud
-                      </p>
-                    </div>
-                  </div>
-                </div>
+            
+          </div>
+        </div>
+      </div>
 
-                {/* Venue Information */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                  <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h5 className="font-semibold text-gray-900 mb-2">Zal Ma'lumotlari</h5>
-                    <div className="space-y-2 text-sm text-gray-600">
-                      <div className="flex justify-between">
-                        <span>Sig'im:</span>
-                        <span className="font-medium">200-300 kishi</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Maydon:</span>
-                        <span className="font-medium">500 m²</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Lokatsiya:</span>
-                        <span className="font-medium">Grand Hall</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h5 className="font-semibold text-gray-900 mb-2">Narxlar</h5>
-                    <div className="space-y-2 text-sm text-gray-600">
-                      <div className="flex justify-between">
-                        <span>Kunlik (10:00-18:00):</span>
-                        <span className="font-medium text-green-600">$1,500</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Kechki (18:00-24:00):</span>
-                        <span className="font-medium text-blue-600">$2,000</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>To'liq kun:</span>
-                        <span className="font-medium text-purple-600">$3,200</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h5 className="font-semibold text-gray-900 mb-2">Qo'shimcha Xizmatlar</h5>
-                    <div className="space-y-2 text-sm text-gray-600">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                        <span>Texnika (audio/video)</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                        <span>Dekoratsiya</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                        <span>Catering xizmati</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Time Slots */}
-                <div className="mb-6">
-                  <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                    <Clock className="w-5 h-5 mr-2" />
-                    Mavjud vaqt oralig'i
-                  </h4>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {getSelectedDayAvailability()?.timeSlots.map(slot => {
-                      const isEvening = parseInt(slot.time.split(':')[0]) >= 18;
-                      const isDaytime = parseInt(slot.time.split(':')[0]) >= 10 && parseInt(slot.time.split(':')[0]) < 18;
-
-                      return (
-                        <button
-                          key={slot.time}
-                          onClick={() => setSelectedTime(slot.time)}
-                          disabled={!slot.available}
-                          className={`
-                            p-4 rounded-lg border text-center transition-all relative
-                            ${selectedTime === slot.time 
-                              ? 'bg-blue-100 border-blue-300 text-blue-700 ring-2 ring-blue-500' 
-                              : ''
-                            }
-                            ${slot.available 
-                              ? 'hover:bg-green-50 hover:border-green-300 cursor-pointer border-gray-300' 
-                              : 'bg-red-50 border-red-200 text-red-500 cursor-not-allowed'
-                            }
-                          `}
-                        >
-                          <div className="font-bold text-lg">{slot.time}</div>
-                          <div className="text-xs mt-1">
-                            {slot.available ? 'Mavjud' : 'Band'}
-                          </div>
-                          {slot.available && (
-                            <div className="text-xs mt-1 font-medium">
-                              {isEvening ? '$2,000' : isDaytime ? '$1,500' : '$1,200'}
-                            </div>
-                          )}
-                          {slot.available && (
-                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full"></div>
-                          )}
-                        </button>
-                      );
+      {/* Time Selection Modal */}
+      {showTimeModal && selectedDate && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 flex items-center">
+                    <Calendar className="w-7 h-7 mr-3 text-blue-600" />
+                    {new Date(selectedDate).toLocaleDateString('uz-UZ', { 
+                      weekday: 'long', 
+                      month: 'long', 
+                      day: 'numeric',
+                      year: 'numeric'
                     })}
+                  </h3>
+                  <p className="text-gray-600 mt-1">Mavjud vaqtlar va qo'shimcha ma'lumotlar</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowTimeModal(false);
+                    setSelectedDate('');
+                    setSelectedTime('');
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6 text-gray-500" />
+                </button>
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <div className="bg-green-100 text-green-800 px-3 py-2 rounded-lg text-sm font-medium">
+                  ✓ Mavjud kun
+                </div>
+                <p className="text-sm text-gray-500">
+                  {getSelectedDayAvailability()?.timeSlots.filter(slot => slot.available).length || 0} ta vaqt mavjud
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6">
+              {/* Venue Information */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <Users className="w-5 h-5 mr-2 text-blue-600" />
+                    Zal Ma'lumotlari
+                  </h5>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex justify-between">
+                      <span>Sig'im:</span>
+                      <span className="font-medium">200-300 kishi</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Maydon:</span>
+                      <span className="font-medium">500 m²</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Lokatsiya:</span>
+                      <span className="font-medium">Grand Hall</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Booking Confirmation */}
-                {selectedTime && (
-                  <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 border border-green-200">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                      <div className="flex-1">
-                        <h5 className="font-bold text-gray-900 text-lg mb-2">Tanlangan rezervatsiya:</h5>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <p className="text-gray-600">Sana:</p>
-                            <p className="font-medium text-gray-900">
-                              {new Date(selectedDate).toLocaleDateString('uz-UZ')}
-                            </p>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <DollarSign className="w-5 h-5 mr-2 text-green-600" />
+                    Narxlar
+                  </h5>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex justify-between">
+                      <span>Kunlik (10:00-18:00):</span>
+                      <span className="font-medium text-green-600">$1,500</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Kechki (18:00-24:00):</span>
+                      <span className="font-medium text-blue-600">$2,000</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>To'liq kun:</span>
+                      <span className="font-medium text-purple-600">$3,200</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <Star className="w-5 h-5 mr-2 text-yellow-600" />
+                    Qo'shimcha Xizmatlar
+                  </h5>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span>Texnika (audio/video)</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span>Dekoratsiya</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span>Catering xizmati</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Time Slots */}
+              <div className="mb-8">
+                <h4 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                  <Clock className="w-6 h-6 mr-3 text-blue-600" />
+                  Mavjud vaqt oralig'i
+                </h4>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {getSelectedDayAvailability()?.timeSlots.map(slot => {
+                    const isEvening = parseInt(slot.time.split(':')[0]) >= 18;
+                    const isDaytime = parseInt(slot.time.split(':')[0]) >= 10 && parseInt(slot.time.split(':')[0]) < 18;
+
+                    return (
+                      <button
+                        key={slot.time}
+                        onClick={() => setSelectedTime(slot.time)}
+                        disabled={!slot.available}
+                        className={`
+                          p-6 rounded-xl border text-center transition-all relative shadow-sm
+                          ${selectedTime === slot.time 
+                            ? 'bg-blue-100 border-blue-300 text-blue-700 ring-2 ring-blue-500 scale-105' 
+                            : ''
+                          }
+                          ${slot.available 
+                            ? 'hover:bg-green-50 hover:border-green-300 cursor-pointer border-gray-300 hover:shadow-md hover:scale-105' 
+                            : 'bg-red-50 border-red-200 text-red-500 cursor-not-allowed opacity-60'
+                          }
+                        `}
+                      >
+                        <div className="font-bold text-xl mb-2">{slot.time}</div>
+                        <div className="text-sm mb-2">
+                          {slot.available ? '✓ Mavjud' : '✗ Band'}
+                        </div>
+                        {slot.available && (
+                          <div className="text-sm font-bold text-green-600">
+                            {isEvening ? '$2,000' : isDaytime ? '$1,500' : '$1,200'}
                           </div>
-                          <div>
-                            <p className="text-gray-600">Vaqt:</p>
-                            <p className="font-medium text-gray-900">{selectedTime}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-600">Narx:</p>
-                            <p className="font-bold text-green-600">
-                              {parseInt(selectedTime.split(':')[0]) >= 18 ? '$2,000' : 
-                               parseInt(selectedTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
-                            </p>
-                          </div>
+                        )}
+                        {slot.available && (
+                          <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Booking Confirmation */}
+              {selectedTime && (
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border border-green-200">
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                    <div className="flex-1">
+                      <h5 className="font-bold text-gray-900 text-xl mb-4">Tanlangan rezervatsiya:</h5>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div className="text-center p-4 bg-white rounded-lg border">
+                          <p className="text-gray-600 text-sm mb-1">Sana</p>
+                          <p className="font-bold text-gray-900">
+                            {new Date(selectedDate).toLocaleDateString('uz-UZ')}
+                          </p>
+                        </div>
+                        <div className="text-center p-4 bg-white rounded-lg border">
+                          <p className="text-gray-600 text-sm mb-1">Vaqt</p>
+                          <p className="font-bold text-gray-900">{selectedTime}</p>
+                        </div>
+                        <div className="text-center p-4 bg-white rounded-lg border">
+                          <p className="text-gray-600 text-sm mb-1">Narx</p>
+                          <p className="font-bold text-green-600 text-lg">
+                            {parseInt(selectedTime.split(':')[0]) >= 18 ? '$2,000' : 
+                             parseInt(selectedTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
+                          </p>
                         </div>
                       </div>
-                      <div className="lg:ml-6">
-                        <button
-                          onClick={handleBooking}
-                          className="w-full lg:w-auto flex items-center justify-center space-x-3 px-8 py-4 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all font-semibold text-lg shadow-lg"
-                        >
-                          <Check className="w-6 h-6" />
-                          <span>Tasdiqlayman</span>
-                        </button>
-                      </div>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            {selectedTime && (
+              <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-2xl">
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => {
+                      setShowTimeModal(false);
+                      setSelectedDate('');
+                      setSelectedTime('');
+                    }}
+                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    Bekor qilish
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleBooking();
+                      setShowTimeModal(false);
+                    }}
+                    className="flex-1 flex items-center justify-center space-x-3 px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all font-bold text-lg shadow-lg"
+                  >
+                    <Check className="w-6 h-6" />
+                    <span>Tasdiqlayman</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
