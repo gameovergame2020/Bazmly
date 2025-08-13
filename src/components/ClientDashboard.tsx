@@ -448,7 +448,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           style={{ 
                             backgroundImage: 'none'
                           }}
-                          size={1}
+                          size={5}
                         >
                           {Array.from({ length: 16 }, (_, i) => {
                             const hour = i + 8; // 8:00 dan 23:00 gacha
@@ -495,12 +495,16 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       
                       {/* CSS to control dropdown height */}
                       <style jsx>{`
+                        select {
+                          max-height: 160px;
+                          overflow-y: auto;
+                        }
                         select option {
                           padding: 8px 12px;
                         }
-                        select {
-                          max-height: 200px;
-                          overflow-y: auto;
+                        select[size] {
+                          height: auto;
+                          max-height: 160px;
                         }
                       `}</style>
                       
