@@ -219,61 +219,176 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
               </div>
             </div>
 
-            {/* Time Slots */}
+            {/* Selected Date Details */}
             {selectedDate && (
               <div className="border-t border-gray-200 pt-8">
-                <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                  <Clock className="w-5 h-5 mr-2" />
-                  {new Date(selectedDate).toLocaleDateString('uz-UZ', { 
-                    weekday: 'long', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })} uchun vaqtlar
-                </h4>
-                
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                  {getSelectedDayAvailability()?.timeSlots.map(slot => (
-                    <button
-                      key={slot.time}
-                      onClick={() => setSelectedTime(slot.time)}
-                      disabled={!slot.available}
-                      className={`
-                        p-3 rounded-lg border text-center transition-all
-                        ${selectedTime === slot.time 
-                          ? 'bg-blue-100 border-blue-300 text-blue-700' 
-                          : ''
-                        }
-                        ${slot.available 
-                          ? 'hover:bg-green-50 hover:border-green-300 cursor-pointer border-gray-300' 
-                          : 'bg-red-50 border-red-200 text-red-500 cursor-not-allowed'
-                        }
-                      `}
-                    >
-                      <div className="font-medium">{slot.time}</div>
-                      <div className="text-xs mt-1">
-                        {slot.available ? 'Mavjud' : 'Band'}
+                {/* Date Header with Info */}
+                <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-6 mb-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xl font-bold text-gray-900 flex items-center mb-2">
+                        <Calendar className="w-6 h-6 mr-3 text-blue-600" />
+                        {new Date(selectedDate).toLocaleDateString('uz-UZ', { 
+                          weekday: 'long', 
+                          month: 'long', 
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </h4>
+                      <p className="text-gray-600">
+                        Mavjud vaqtlar va qo'shimcha ma'lumotlar
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="bg-green-100 text-green-800 px-3 py-2 rounded-lg text-sm font-medium">
+                        ✓ Mavjud kun
                       </div>
-                    </button>
-                  ))}
+                      <p className="text-xs text-gray-500 mt-1">
+                        {getSelectedDayAvailability()?.timeSlots.filter(slot => slot.available).length || 0} ta vaqt mavjud
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Booking Button */}
-                {selectedTime && (
-                  <div className="bg-gray-50 rounded-lg p-6 border">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h5 className="font-medium text-gray-900">Tanlangan vaqt:</h5>
-                        <p className="text-lg font-bold text-blue-600">
-                          {new Date(selectedDate).toLocaleDateString('uz-UZ')} - {selectedTime}
-                        </p>
+                {/* Venue Information */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <h5 className="font-semibold text-gray-900 mb-2">Zal Ma'lumotlari</h5>
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <div className="flex justify-between">
+                        <span>Sig'im:</span>
+                        <span className="font-medium">200-300 kishi</span>
                       </div>
-                      <button
-                        onClick={handleBooking}
-                        className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-                      >
-                        <Check className="w-5 h-5" />
-                        <span>Band qilish</span>
-                      </button>
+                      <div className="flex justify-between">
+                        <span>Maydon:</span>
+                        <span className="font-medium">500 m²</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Lokatsiya:</span>
+                        <span className="font-medium">Grand Hall</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <h5 className="font-semibold text-gray-900 mb-2">Narxlar</h5>
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <div className="flex justify-between">
+                        <span>Kunlik (10:00-18:00):</span>
+                        <span className="font-medium text-green-600">$1,500</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Kechki (18:00-24:00):</span>
+                        <span className="font-medium text-blue-600">$2,000</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>To'liq kun:</span>
+                        <span className="font-medium text-purple-600">$3,200</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <h5 className="font-semibold text-gray-900 mb-2">Qo'shimcha Xizmatlar</h5>
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                        <span>Texnika (audio/video)</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                        <span>Dekoratsiya</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                        <span>Catering xizmati</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Time Slots */}
+                <div className="mb-6">
+                  <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <Clock className="w-5 h-5 mr-2" />
+                    Mavjud vaqt oralig'i
+                  </h4>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {getSelectedDayAvailability()?.timeSlots.map(slot => {
+                      const isEvening = parseInt(slot.time.split(':')[0]) >= 18;
+                      const isDaytime = parseInt(slot.time.split(':')[0]) >= 10 && parseInt(slot.time.split(':')[0]) < 18;
+                      
+                      return (
+                        <button
+                          key={slot.time}
+                          onClick={() => setSelectedTime(slot.time)}
+                          disabled={!slot.available}
+                          className={`
+                            p-4 rounded-lg border text-center transition-all relative
+                            ${selectedTime === slot.time 
+                              ? 'bg-blue-100 border-blue-300 text-blue-700 ring-2 ring-blue-500' 
+                              : ''
+                            }
+                            ${slot.available 
+                              ? 'hover:bg-green-50 hover:border-green-300 cursor-pointer border-gray-300' 
+                              : 'bg-red-50 border-red-200 text-red-500 cursor-not-allowed'
+                            }
+                          `}
+                        >
+                          <div className="font-bold text-lg">{slot.time}</div>
+                          <div className="text-xs mt-1">
+                            {slot.available ? 'Mavjud' : 'Band'}
+                          </div>
+                          {slot.available && (
+                            <div className="text-xs mt-1 font-medium">
+                              {isEvening ? '$2,000' : isDaytime ? '$1,500' : '$1,200'}
+                            </div>
+                          )}
+                          {slot.available && (
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full"></div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Booking Confirmation */}
+                {selectedTime && (
+                  <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 border border-green-200">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                      <div className="flex-1">
+                        <h5 className="font-bold text-gray-900 text-lg mb-2">Tanlangan rezervatsiya:</h5>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-600">Sana:</p>
+                            <p className="font-medium text-gray-900">
+                              {new Date(selectedDate).toLocaleDateString('uz-UZ')}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600">Vaqt:</p>
+                            <p className="font-medium text-gray-900">{selectedTime}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600">Narx:</p>
+                            <p className="font-bold text-green-600">
+                              {parseInt(selectedTime.split(':')[0]) >= 18 ? '$2,000' : 
+                               parseInt(selectedTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="lg:ml-6">
+                        <button
+                          onClick={handleBooking}
+                          className="w-full lg:w-auto flex items-center justify-center space-x-3 px-8 py-4 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all font-semibold text-lg shadow-lg"
+                        >
+                          <Check className="w-6 h-6" />
+                          <span>Tasdiqlayman</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
