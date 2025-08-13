@@ -77,6 +77,10 @@ function App() {
   }
 
   // Mijoz uchun alohida MVP interfeysi
+  console.log('Current user:', user);
+  console.log('User role:', user.role);
+  console.log('Is client?', user.role === 'client');
+  
   if (user.role === 'client') {
     return <ClientDashboard user={user} />;
   }

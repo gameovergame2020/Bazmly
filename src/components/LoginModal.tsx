@@ -23,14 +23,18 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
 
   const handleLogin = () => {
     const userData = demoUsers.find(user => user.role === selectedRole);
+    console.log('Selected role:', selectedRole);
+    console.log('Found user data:', userData);
     if (userData) {
-      onLogin({
+      const loginData = {
         id: Math.random().toString(36),
         name: userData.name,
         email: userData.email,
         role: userData.role,
         tenantId: 'uzbekistan-main'
-      });
+      };
+      console.log('Logging in with:', loginData);
+      onLogin(loginData);
     }
   };
 
