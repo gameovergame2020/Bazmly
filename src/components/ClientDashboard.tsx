@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Calendar, Clock, Check, X } from 'lucide-react';
 import { User } from '../App';
@@ -73,7 +72,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     const startingDayOfWeek = firstDay.getDay();
 
     const days = [];
-    
+
     // Oldingi oyning qolgan kunlari
     for (let i = startingDayOfWeek - 1; i >= 0; i--) {
       const prevDate = new Date(currentYear, currentMonth, -i);
@@ -90,7 +89,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
       const currentDate = new Date(currentYear, currentMonth, day);
       const dateString = currentDate.toISOString().split('T')[0];
       const dayAvailability = availability.find(a => a.date === dateString);
-      
+
       days.push({
         date: day,
         isCurrentMonth: true,
@@ -122,7 +121,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Banket Zali</h1>
+              <h1 className="text-2xl font-bold text-gray-900">To'yxona</h1>
               <p className="text-gray-600">Salom, {user.name}!</p>
             </div>
             <div className="text-right">
@@ -180,7 +179,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                 {generateCalendarDays().map((day, index) => {
                   const isSelected = day.fullDate === selectedDate;
                   const isToday = day.fullDate === new Date().toISOString().split('T')[0];
-                  
+
                   return (
                     <button
                       key={index}
@@ -313,12 +312,12 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     <Clock className="w-5 h-5 mr-2" />
                     Mavjud vaqt oralig'i
                   </h4>
-                  
+
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {getSelectedDayAvailability()?.timeSlots.map(slot => {
                       const isEvening = parseInt(slot.time.split(':')[0]) >= 18;
                       const isDaytime = parseInt(slot.time.split(':')[0]) >= 10 && parseInt(slot.time.split(':')[0]) < 18;
-                      
+
                       return (
                         <button
                           key={slot.time}
