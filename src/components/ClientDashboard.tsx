@@ -263,12 +263,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   };
 
   const handleBooking = () => {
-    if (selectedDate && selectedTime && clientName && clientPhone) {
-      alert(`Band qilindi!\nSana: ${selectedDate}\nVaqt: ${selectedTime}\nMijoz: ${clientName}\nTelefon: ${clientPhone}`);
+    const finalTime = selectedTime || customTime;
+    if (selectedDate && finalTime && clientName && clientPhone) {
+      alert(`Band qilindi!\nSana: ${selectedDate}\nVaqt: ${finalTime}\nMijoz: ${clientName}\nTelefon: ${clientPhone}`);
       setShowBookingForm(false);
       setShowTimeModal(false);
       setSelectedDate('');
       setSelectedTime('');
+      setCustomTime('10:00');
       setClientName('');
       setClientPhone('');
     } else {
@@ -511,50 +513,98 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                 </div>
               </div>
 
-              {/* Time Slots */}
+              {/* Time Selection */}
               <div className="mb-8">
                 <h4 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
                   <Clock className="w-6 h-6 mr-3 text-blue-600" />
-                  Mavjud vaqt oralig'i
+                  Vaqt tanlash
                 </h4>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {getSelectedDayAvailability()?.timeSlots.map(slot => {
-                    const isEvening = parseInt(slot.time.split(':')[0]) >= 18;
-                    const isDaytime = parseInt(slot.time.split(':')[0]) >= 10 && parseInt(slot.time.split(':')[0]) < 18;
+                {/* Custom Time Selection */}
+                <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 border border-blue-200 mb-6">
+                  <h5 className="font-semibold text-gray-900 mb-4 flex items-center">
+                    <Clock className="w-5 h-5 mr-2 text-blue-600" />
+                    O'zingiz vaqt belgilang (To'yxona ish vaqti: 08:00 - 23:00)
+                  </h5>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Kerakli vaqtni tanlang:
+                      </label>
+                      <input
+                        type="time"
+                        min="08:00"
+                        max="23:00"
+                        value={customTime}
+                        onChange={(e) => {
+                          setCustomTime(e.target.value);
+                          setSelectedTime(e.target.value);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-medium"
+                      />
+                      <p className="text-sm text-gray-500 mt-1">
+                        To'yxona 08:00 dan 23:00 gacha ishlaydi
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-gray-600 mb-1">Tanlangan vaqt:</div>
+                      <div className="font-bold text-xl text-blue-600">
+                        {customTime || '08:00'}
+                      </div>
+                      <div className="text-sm font-medium text-green-600 mt-1">
+                        Narx: {
+                          customTime && parseInt(customTime.split(':')[0]) >= 18 ? '$2,000' :
+                          customTime && parseInt(customTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                    return (
-                      <button
-                        key={slot.time}
-                        onClick={() => setSelectedTime(slot.time)}
-                        disabled={!slot.available}
-                        className={`
-                          p-6 rounded-xl border text-center transition-all relative shadow-sm
-                          ${selectedTime === slot.time 
-                            ? 'bg-blue-100 border-blue-300 text-blue-700 ring-2 ring-blue-500 scale-105' 
-                            : ''
-                          }
-                          ${slot.available 
-                            ? 'hover:bg-green-50 hover:border-green-300 cursor-pointer border-gray-300 hover:shadow-md hover:scale-105' 
-                            : 'bg-red-50 border-red-200 text-red-500 cursor-not-allowed opacity-60'
-                          }
-                        `}
-                      >
-                        <div className="font-bold text-xl mb-2">{slot.time}</div>
-                        <div className="text-sm mb-2">
-                          {slot.available ? '✓ Mavjud' : '✗ Band'}
-                        </div>
-                        {slot.available && (
-                          <div className="text-sm font-bold text-green-600">
-                            {isEvening ? '$2,000' : isDaytime ? '$1,500' : '$1,200'}
+                {/* Pre-defined Time Slots */}
+                <div className="border-t pt-6">
+                  <h5 className="font-semibold text-gray-900 mb-4">Yoki tayyor vaqtlardan birini tanlang:</h5>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {getSelectedDayAvailability()?.timeSlots.map(slot => {
+                      const isEvening = parseInt(slot.time.split(':')[0]) >= 18;
+                      const isDaytime = parseInt(slot.time.split(':')[0]) >= 10 && parseInt(slot.time.split(':')[0]) < 18;
+
+                      return (
+                        <button
+                          key={slot.time}
+                          onClick={() => {
+                            setSelectedTime(slot.time);
+                            setCustomTime(slot.time);
+                          }}
+                          disabled={!slot.available}
+                          className={`
+                            p-4 rounded-xl border text-center transition-all relative shadow-sm
+                            ${selectedTime === slot.time 
+                              ? 'bg-blue-100 border-blue-300 text-blue-700 ring-2 ring-blue-500' 
+                              : ''
+                            }
+                            ${slot.available 
+                              ? 'hover:bg-green-50 hover:border-green-300 cursor-pointer border-gray-300 hover:shadow-md' 
+                              : 'bg-red-50 border-red-200 text-red-500 cursor-not-allowed opacity-60'
+                            }
+                          `}
+                        >
+                          <div className="font-bold text-lg mb-1">{slot.time}</div>
+                          <div className="text-sm mb-1">
+                            {slot.available ? '✓ Mavjud' : '✗ Band'}
                           </div>
-                        )}
-                        {slot.available && (
-                          <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
-                        )}
-                      </button>
-                    );
-                  })}
+                          {slot.available && (
+                            <div className="text-sm font-bold text-green-600">
+                              {isEvening ? '$2,000' : isDaytime ? '$1,500' : '$1,200'}
+                            </div>
+                          )}
+                          {slot.available && (
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
@@ -575,13 +625,13 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Vaqt:</span>
-                            <span className="font-medium">{selectedTime}</span>
+                            <span className="font-medium">{selectedTime || customTime}</span>
                           </div>
                           <div className="flex justify-between border-t pt-2">
                             <span className="text-gray-600">Narx:</span>
                             <span className="font-bold text-green-600">
-                              {parseInt(selectedTime.split(':')[0]) >= 18 ? '$2,000' : 
-                               parseInt(selectedTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
+                              {(selectedTime || customTime) && parseInt((selectedTime || customTime).split(':')[0]) >= 18 ? '$2,000' : 
+                               (selectedTime || customTime) && parseInt((selectedTime || customTime).split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
                             </span>
                           </div>
                         </div>
@@ -624,7 +674,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
             </div>
 
             {/* Modal Footer */}
-            {selectedTime && (
+            {(selectedTime || customTime) && (
               <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-2xl">
                 <div className="flex space-x-4">
                   <button
