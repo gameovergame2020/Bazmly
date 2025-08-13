@@ -561,51 +561,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                   </div>
                 </div>
 
-                {/* Pre-defined Time Slots */}
-                <div className="border-t pt-6">
-                  <h5 className="font-semibold text-gray-900 mb-4">Yoki tayyor vaqtlardan birini tanlang:</h5>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    {getSelectedDayAvailability()?.timeSlots.map(slot => {
-                      const isEvening = parseInt(slot.time.split(':')[0]) >= 18;
-                      const isDaytime = parseInt(slot.time.split(':')[0]) >= 10 && parseInt(slot.time.split(':')[0]) < 18;
-
-                      return (
-                        <button
-                          key={slot.time}
-                          onClick={() => {
-                            setSelectedTime(slot.time);
-                            setCustomTime(slot.time);
-                          }}
-                          disabled={!slot.available}
-                          className={`
-                            p-4 rounded-xl border text-center transition-all relative shadow-sm
-                            ${selectedTime === slot.time 
-                              ? 'bg-blue-100 border-blue-300 text-blue-700 ring-2 ring-blue-500' 
-                              : ''
-                            }
-                            ${slot.available 
-                              ? 'hover:bg-green-50 hover:border-green-300 cursor-pointer border-gray-300 hover:shadow-md' 
-                              : 'bg-red-50 border-red-200 text-red-500 cursor-not-allowed opacity-60'
-                            }
-                          `}
-                        >
-                          <div className="font-bold text-lg mb-1">{slot.time}</div>
-                          <div className="text-sm mb-1">
-                            {slot.available ? '✓ Mavjud' : '✗ Band'}
-                          </div>
-                          {slot.available && (
-                            <div className="text-sm font-bold text-green-600">
-                              {isEvening ? '$2,000' : isDaytime ? '$1,500' : '$1,200'}
-                            </div>
-                          )}
-                          {slot.available && (
-                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                
               </div>
 
               {/* Client Booking Form */}
