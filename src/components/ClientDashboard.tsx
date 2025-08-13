@@ -484,9 +484,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           style={{ backgroundImage: 'none' }}
                         >
                           <option value="00">00</option>
-                          <option value="15">15</option>
                           <option value="30">30</option>
-                          <option value="45">45</option>
                         </select>
                       </div>
                       
