@@ -445,7 +445,10 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             }
                           }}
                           className="flex-1 px-4 py-3 text-lg font-medium bg-transparent border-none outline-none focus:ring-0 appearance-none cursor-pointer"
-                          style={{ backgroundImage: 'none' }}
+                          style={{ 
+                            backgroundImage: 'none'
+                          }}
+                          size={1}
                         >
                           {Array.from({ length: 16 }, (_, i) => {
                             const hour = i + 8; // 8:00 dan 23:00 gacha
@@ -482,11 +485,23 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           }}
                           className="flex-1 px-4 py-3 text-lg font-medium bg-transparent border-none outline-none focus:ring-0 appearance-none cursor-pointer"
                           style={{ backgroundImage: 'none' }}
+                          size={1}
                         >
                           <option value="00">00</option>
                           <option value="30">30</option>
                         </select>
                       </div>
+                      
+                      {/* CSS to control dropdown height */}
+                      <style jsx>{`
+                        select option {
+                          padding: 8px 12px;
+                        }
+                        select {
+                          max-height: 200px;
+                          overflow-y: auto;
+                        }
+                      `}</style>
                       
                       {/* Time indicator */}
                       <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
