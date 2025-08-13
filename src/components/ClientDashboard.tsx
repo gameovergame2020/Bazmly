@@ -440,7 +440,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         setSelectedTime(selectedTimeValue);
                       }
                     }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-medium mb-4 [&::-webkit-datetime-edit-ampm-field]:hidden [&::-webkit-datetime-edit-ampm-field]:!hidden [&::-webkit-datetime-edit-ampm-field]:!display-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-medium mb-4"
                     style={{
                       appearance: 'none',
                       WebkitAppearance: 'none',
@@ -449,6 +449,17 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     data-format="24"
                     lang="en-GB"
                   />
+                  <style jsx>{`
+                    input[type="time"]::-webkit-datetime-edit-ampm-field {
+                      display: none !important;
+                    }
+                    input[type="time"]::-webkit-inner-spin-button {
+                      display: none;
+                    }
+                    input[type="time"]::-webkit-clear-button {
+                      display: none;
+                    }
+                  `}</style>
 
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="flex justify-between items-center mb-3">
