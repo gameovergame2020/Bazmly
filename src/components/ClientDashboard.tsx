@@ -462,8 +462,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                                 key={hour} 
                                 value={hourStr}
                                 className={isBooked ? 'text-red-600 bg-red-50' : 'text-green-600'}
+                                disabled={isBooked}
                               >
-                                {hourStr}
+                                {hourStr} {isBooked ? '(Band)' : '(Mavjud)'}
                               </option>
                             );
                           })}
@@ -509,59 +510,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       </div>
                     </div>
 
-                    {/* Available Hours Display */}
-                    {selectedDate && (
-                      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                        <h5 className="font-medium text-gray-800 mb-3">Mavjud vaqtlar:</h5>
-                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                          {Array.from({ length: 16 }, (_, i) => {
-                            const hour = i + 8;
-                            const hourStr = hour.toString().padStart(2, '0');
-                            const timeStr = `${hourStr}:00`;
-                            const dayData = getSelectedDayAvailability();
-                            const isBooked = dayData?.timeSlots.some(slot => 
-                              slot.time === timeStr && slot.booked
-                            );
-                            const isSelected = customTime.startsWith(hourStr);
-                            
-                            return (
-                              <button
-                                key={hour}
-                                onClick={() => {
-                                  if (!isBooked) {
-                                    const newTime = `${hourStr}:00`;
-                                    setCustomTime(newTime);
-                                    setSelectedTime(newTime);
-                                  }
-                                }}
-                                disabled={isBooked}
-                                className={`
-                                  px-2 py-1 rounded text-sm font-medium transition-colors
-                                  ${isSelected ? 'ring-2 ring-blue-500' : ''}
-                                  ${isBooked 
-                                    ? 'bg-red-100 text-red-600 cursor-not-allowed border-red-300' 
-                                    : 'bg-green-100 text-green-700 hover:bg-green-200 cursor-pointer border-green-300'
-                                  }
-                                  border
-                                `}
-                              >
-                                {timeStr}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <div className="flex items-center justify-center space-x-6 mt-3 text-xs">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                            <span className="text-gray-600">Mavjud</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                            <span className="text-gray-600">Band qilingan</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    
 
                     {/* Band qilingan vaqtlar haqida ogohlantirish */}
                     {selectedDate && (() => {
