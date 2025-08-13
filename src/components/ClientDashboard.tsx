@@ -440,7 +440,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         setSelectedTime(selectedTimeValue);
                       }
                     }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-medium mb-4"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-medium mb-4 [&::-webkit-datetime-edit-ampm-field]:hidden [&::-webkit-datetime-edit-ampm-field]:!hidden [&::-webkit-datetime-edit-ampm-field]:!display-none"
                     style={{
                       appearance: 'none',
                       WebkitAppearance: 'none',
