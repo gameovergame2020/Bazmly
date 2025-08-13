@@ -475,7 +475,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           setCustomTime(e.target.value);
                           setSelectedTime(e.target.value);
                         }}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-medium [&::-webkit-datetime-edit-ampm-field]:hidden"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-medium [&::-webkit-datetime-edit-ampm-field]:hidden [&::-webkit-datetime-edit-ampm-field]:!hidden [&::-webkit-datetime-edit-ampm-field]:!display-none"
+                        style={{ 
+                          appearance: 'textfield',
+                          MozAppearance: 'textfield',
+                          WebkitAppearance: 'textfield'
+                        }}
+                        data-format="24"
+                        data-time-format="HH:mm"
                       />
                       <p className="text-sm text-gray-500 mt-1">
                         To'yxona 08:00 dan 23:00 gacha ishlaydi
