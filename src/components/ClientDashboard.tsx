@@ -417,10 +417,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
                   <p className="text-sm text-gray-600 mb-4">To'yxona ish vaqti: 08:00 - 23:00</p>
 
-                  {/* Custom Time Picker */}
+                  {/* HTML Time Picker */}
                   <div className="mb-4">
-                    {/* Time Navigation */}
-                    <div className="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border">
+                    <div className="flex items-center justify-between mb-4 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border">
                       <div className="flex items-center space-x-3">
                         <Clock className="w-5 h-5 text-blue-600" />
                         <span className="font-semibold text-gray-800">Vaqt tanlash</span>
@@ -430,219 +429,43 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       </div>
                     </div>
 
-                    {/* Recommended Popular Times */}
-                    <div className="mb-6">
-                      <h5 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                        <Star className="w-4 h-4 mr-2 text-yellow-500" />
-                        Mashhur vaqtlar
-                      </h5>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {['10:00', '14:00', '18:00', '20:00'].map(time => {
-                          const dayData = selectedDate ? getSelectedDayAvailability() : null;
-                          const isBooked = dayData?.timeSlots.some(
-                            slot => slot.time === time && slot.booked
-                          );
-                          const isSelected = customTime === time;
+                    <input
+                      type="time"
+                      value={customTime}
+                      onChange={(e) => {
+                        setCustomTime(e.target.value);
+                        if (selectedDate) {
+                          setSelectedTime(e.target.value);
+                        }
+                      }}
+                      min="08:00"
+                      max="23:00"
+                      step="3600"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-medium mb-4"
+                    />
 
-                          return (
-                            <button
-                              key={time}
-                              onClick={() => {
-                                if (!isBooked) {
-                                  setCustomTime(time);
-                                  if (selectedDate) {
-                                    setSelectedTime(time);
-                                  }
-                                } else {
-                                  alert('Bu vaqt allaqachon band qilingan!');
-                                }
-                              }}
-                              disabled={isBooked}
-                              className={`
-                                px-4 py-4 rounded-xl font-bold text-lg transition-all border-2 relative
-                                ${isSelected
-                                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-blue-600 shadow-xl transform scale-105'
-                                  : isBooked
-                                    ? 'bg-red-100 text-red-700 border-red-300 cursor-not-allowed opacity-70'
-                                    : 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-300 hover:from-green-200 hover:to-emerald-200 hover:border-green-400 cursor-pointer hover:shadow-lg'
-                                }
-                              `}
-                            >
-                              <div className="flex flex-col items-center">
-                                <span className="text-xl font-bold">{time}</span>
-                                <span className="text-xs mt-1 opacity-80">
-                                  {isBooked ? 'Band' : 'Mavjud'}
+                    {/* Band qilingan vaqtlar haqida ogohlantirish */}
+                    {selectedDate && (() => {
+                      const dayData = getSelectedDayAvailability();
+                      const bookedTimes = dayData?.timeSlots.filter(slot => slot.booked).map(slot => slot.time) || [];
+                      if (bookedTimes.length > 0) {
+                        return (
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                            <p className="text-red-700 font-medium mb-2">
+                              Band qilingan vaqtlar:
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {bookedTimes.map((time, index) => (
+                                <span key={index} className="bg-red-200 text-red-800 px-2 py-1 rounded text-sm">
+                                  {time}
                                 </span>
-                              </div>
-                              {isSelected && (
-                                <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                                  <Check className="w-4 h-4 text-white" />
-                                </div>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* All Time Slots */}
-                    <div className="mb-6">
-                      <h5 className="text-sm font-semibold text-gray-700 mb-3">Barcha mavjud vaqtlar</h5>
-                      
-                      {/* Morning */}
-                      <div className="mb-4">
-                        <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">
-                          🌅 Ertalab (08:00 - 12:00)
-                        </p>
-                        <div className="grid grid-cols-4 gap-2">
-                          {Array.from({ length: 9 }, (_, i) => {
-                            const hour = i + 8;
-                            const timeSlot = `${hour.toString().padStart(2, '0')}:00`;
-                            if (hour > 12) return null;
-                            
-                            const dayData = selectedDate ? getSelectedDayAvailability() : null;
-                            const isBooked = dayData?.timeSlots.some(
-                              slot => slot.time === timeSlot && slot.booked
-                            );
-                            const isSelected = customTime === timeSlot;
-
-                            return (
-                              <button
-                                key={timeSlot}
-                                onClick={() => {
-                                  if (!isBooked) {
-                                    setCustomTime(timeSlot);
-                                    if (selectedDate) {
-                                      setSelectedTime(timeSlot);
-                                    }
-                                  }
-                                }}
-                                disabled={isBooked}
-                                className={`
-                                  px-3 py-2 rounded-lg font-medium text-sm transition-all border
-                                  ${isSelected
-                                    ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                                    : isBooked
-                                      ? 'bg-red-50 text-red-600 border-red-200 cursor-not-allowed opacity-70'
-                                      : 'bg-white text-gray-700 border-gray-200 hover:bg-green-50 hover:border-green-300 cursor-pointer'
-                                  }
-                                `}
-                              >
-                                {timeSlot}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Afternoon */}
-                      <div className="mb-4">
-                        <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">
-                          ☀️ Kun (12:00 - 18:00)
-                        </p>
-                        <div className="grid grid-cols-4 gap-2">
-                          {Array.from({ length: 12 }, (_, i) => {
-                            const hour = i + 12;
-                            const timeSlot = `${hour.toString().padStart(2, '0')}:00`;
-                            if (hour >= 18) return null;
-                            
-                            const dayData = selectedDate ? getSelectedDayAvailability() : null;
-                            const isBooked = dayData?.timeSlots.some(
-                              slot => slot.time === timeSlot && slot.booked
-                            );
-                            const isSelected = customTime === timeSlot;
-
-                            return (
-                              <button
-                                key={timeSlot}
-                                onClick={() => {
-                                  if (!isBooked) {
-                                    setCustomTime(timeSlot);
-                                    if (selectedDate) {
-                                      setSelectedTime(timeSlot);
-                                    }
-                                  }
-                                }}
-                                disabled={isBooked}
-                                className={`
-                                  px-3 py-2 rounded-lg font-medium text-sm transition-all border
-                                  ${isSelected
-                                    ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                                    : isBooked
-                                      ? 'bg-red-50 text-red-600 border-red-200 cursor-not-allowed opacity-70'
-                                      : 'bg-white text-gray-700 border-gray-200 hover:bg-green-50 hover:border-green-300 cursor-pointer'
-                                  }
-                                `}
-                              >
-                                {timeSlot}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Evening */}
-                      <div className="mb-4">
-                        <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">
-                          🌆 Kech (18:00 - 23:00)
-                        </p>
-                        <div className="grid grid-cols-4 gap-2">
-                          {Array.from({ length: 6 }, (_, i) => {
-                            const hour = i + 18;
-                            const timeSlot = `${hour.toString().padStart(2, '0')}:00`;
-                            if (hour >= 24) return null;
-                            
-                            const dayData = selectedDate ? getSelectedDayAvailability() : null;
-                            const isBooked = dayData?.timeSlots.some(
-                              slot => slot.time === timeSlot && slot.booked
-                            );
-                            const isSelected = customTime === timeSlot;
-
-                            return (
-                              <button
-                                key={timeSlot}
-                                onClick={() => {
-                                  if (!isBooked) {
-                                    setCustomTime(timeSlot);
-                                    if (selectedDate) {
-                                      setSelectedTime(timeSlot);
-                                    }
-                                  }
-                                }}
-                                disabled={isBooked}
-                                className={`
-                                  px-3 py-2 rounded-lg font-medium text-sm transition-all border
-                                  ${isSelected
-                                    ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                                    : isBooked
-                                      ? 'bg-red-50 text-red-600 border-red-200 cursor-not-allowed opacity-70'
-                                      : 'bg-white text-gray-700 border-gray-200 hover:bg-green-50 hover:border-green-300 cursor-pointer'
-                                  }
-                                `}
-                              >
-                                {timeSlot}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Ranglar uchun legend */}
-                    <div className="flex items-center justify-center space-x-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 bg-green-400 rounded-full shadow-sm"></div>
-                        <span className="text-sm font-medium text-gray-700">Mavjud</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 bg-red-400 rounded-full shadow-sm"></div>
-                        <span className="text-sm font-medium text-gray-700">Band</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 bg-blue-600 rounded-full shadow-sm"></div>
-                        <span className="text-sm font-medium text-gray-700">Tanlangan</span>
-                      </div>
-                    </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
 
                   <div className="bg-gray-50 rounded-lg p-4">
