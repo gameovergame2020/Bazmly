@@ -149,15 +149,15 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     }
   ];
 
-  // Har xil oylar uchun tasodifiy ma'lumotlar yaratish funksiyasi
+  // Doimiy vaqt slotlari
   const generateTimeSlots = (available: boolean) => {
     if (!available) return [];
     
     const allSlots = [
-      { time: '10:00', available: Math.random() > 0.2 },
-      { time: '14:00', available: Math.random() > 0.3 },
-      { time: '18:00', available: Math.random() > 0.4 },
-      { time: '20:00', available: Math.random() > 0.5 }
+      { time: '10:00', available: true },
+      { time: '14:00', available: true },
+      { time: '18:00', available: true },
+      { time: '20:00', available: true }
     ];
     
     return allSlots;
@@ -194,14 +194,15 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
       // Agar ma'lumot yo'q bo'lsa, tasodifiy available qilamiz
       let isAvailable = dayAvailability?.available || false;
       
-      // Agar ma'lumot mavjud emas, tasodifiy qiymat beramiz
+      // Agar ma'lumot mavjud emas, doimiy qiymat beramiz
       if (!dayAvailability) {
         // O'tgan kunlarni band qilamiz
         if (dateString < today) {
           isAvailable = false;
         } else {
-          // Kelajak kunlar uchun tasodifiy available/band
-          isAvailable = Math.random() > 0.3; // 70% available
+          // Kelajak kunlar uchun doimiy pattern
+          const dayOfMonth = new Date(dateString).getDate();
+          isAvailable = dayOfMonth % 3 !== 0; // Har 3-kun band bo'ladi
         }
       }
 
@@ -234,15 +235,24 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   const getSelectedDayAvailability = () => {
     let dayData = availability.find(a => a.date === selectedDate);
     
-    // Agar ma'lumot yo'q bo'lsa, tasodifiy yaratamiz
+    // Agar ma'lumot yo'q bo'lsa, doimiy pattern ishlatamiz
     if (!dayData && selectedDate) {
       const today = new Date().toISOString().split('T')[0];
-      const isAvailable = selectedDate >= today && Math.random() > 0.3;
+      const dayOfMonth = new Date(selectedDate).getDate();
+      const isAvailable = selectedDate >= today && dayOfMonth % 3 !== 0;
+      
+      // Doimiy vaqt slotlari yaratish
+      const timeSlots = isAvailable ? [
+        { time: '10:00', available: dayOfMonth % 4 !== 1 },
+        { time: '14:00', available: dayOfMonth % 4 !== 2 },
+        { time: '18:00', available: dayOfMonth % 4 !== 3 },
+        { time: '20:00', available: dayOfMonth % 4 !== 0 }
+      ] : [];
       
       dayData = {
         date: selectedDate,
         available: isAvailable,
-        timeSlots: generateTimeSlots(isAvailable)
+        timeSlots: timeSlots
       };
     }
     
