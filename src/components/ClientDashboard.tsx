@@ -417,49 +417,115 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
                   <p className="text-sm text-gray-600 mb-4">To'yxona ish vaqti: 08:00 - 23:00</p>
 
-                  <input
-                    type="time"
-                    min="08:00"
-                    max="23:00"
-                    step="1800"
-                    value={customTime}
-                    onChange={(e) => {
-                      const selectedTimeValue = e.target.value;
-                      const dayData = selectedDate ? getSelectedDayAvailability() : null;
-                      const isTimeBooked = dayData?.timeSlots.some(
-                        slot => slot.time === selectedTimeValue && slot.booked
-                      );
+                  {/* Custom Time Picker */}
+                  <div className="mb-4">
+                    <div className="grid grid-cols-4 gap-3 mb-4">
+                      {/* Soat tanlash */}
+                      {Array.from({ length: 16 }, (_, i) => i + 8).map(hour => {
+                        const hourStr = hour.toString().padStart(2, '0');
+                        const timeSlot = `${hourStr}:00`;
+                        const dayData = selectedDate ? getSelectedDayAvailability() : null;
+                        const isBooked = dayData?.timeSlots.some(
+                          slot => slot.time === timeSlot && slot.booked
+                        );
+                        const isSelected = customTime === timeSlot;
 
-                      if (isTimeBooked) {
-                        alert('Bu vaqt allaqachon band qilingan! Iltimos boshqa vaqt tanlang.');
-                        return;
-                      }
+                        return (
+                          <button
+                            key={hour}
+                            onClick={() => {
+                              if (!isBooked) {
+                                setCustomTime(timeSlot);
+                                if (selectedDate) {
+                                  setSelectedTime(timeSlot);
+                                }
+                              } else {
+                                alert('Bu vaqt allaqachon band qilingan!');
+                              }
+                            }}
+                            disabled={isBooked}
+                            className={`
+                              px-4 py-3 rounded-lg font-bold text-sm transition-all border-2
+                              ${isSelected
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-lg transform scale-105'
+                                : isBooked
+                                  ? 'bg-red-100 text-red-700 border-red-300 cursor-not-allowed opacity-70'
+                                  : 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 hover:border-green-400 cursor-pointer'
+                              }
+                            `}
+                          >
+                            {timeSlot}
+                            <div className="text-xs mt-1">
+                              {isBooked ? 'Band' : 'Mavjud'}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
 
-                      setCustomTime(selectedTimeValue);
-                      if (selectedDate) {
-                        setSelectedTime(selectedTimeValue);
-                      }
-                    }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-medium mb-4"
-                    style={{
-                      appearance: 'none',
-                      WebkitAppearance: 'none',
-                      MozAppearance: 'textfield'
-                    }}
-                    data-format="24"
-                    lang="en-GB"
-                  />
-                  <style jsx>{`
-                    input[type="time"]::-webkit-datetime-edit-ampm-field {
-                      display: none !important;
-                    }
-                    input[type="time"]::-webkit-inner-spin-button {
-                      display: none;
-                    }
-                    input[type="time"]::-webkit-clear-button {
-                      display: none;
-                    }
-                  `}</style>
+                    {/* Yarim soat tanlash */}
+                    <div className="border-t pt-4">
+                      <p className="text-sm text-gray-600 mb-3 font-medium">Yarim soat intervallar:</p>
+                      <div className="grid grid-cols-4 gap-3">
+                        {Array.from({ length: 16 }, (_, i) => i + 8).map(hour => {
+                          const hourStr = hour.toString().padStart(2, '0');
+                          const timeSlot = `${hourStr}:30`;
+                          const dayData = selectedDate ? getSelectedDayAvailability() : null;
+                          const isBooked = dayData?.timeSlots.some(
+                            slot => slot.time === timeSlot && slot.booked
+                          );
+                          const isSelected = customTime === timeSlot;
+
+                          return (
+                            <button
+                              key={`${hour}-30`}
+                              onClick={() => {
+                                if (!isBooked) {
+                                  setCustomTime(timeSlot);
+                                  if (selectedDate) {
+                                    setSelectedTime(timeSlot);
+                                  }
+                                } else {
+                                  alert('Bu vaqt allaqachon band qilingan!');
+                                }
+                              }}
+                              disabled={isBooked}
+                              className={`
+                                px-4 py-3 rounded-lg font-bold text-sm transition-all border-2
+                                ${isSelected
+                                  ? 'bg-blue-600 text-white border-blue-600 shadow-lg transform scale-105'
+                                  : isBooked
+                                    ? 'bg-red-100 text-red-700 border-red-300 cursor-not-allowed opacity-70'
+                                    : 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 hover:border-green-400 cursor-pointer'
+                                }
+                              `}
+                            >
+                              {timeSlot}
+                              <div className="text-xs mt-1">
+                                {isBooked ? 'Band' : 'Mavjud'}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Ranglar uchun legend */}
+                    <div className="flex items-center justify-center space-x-6 mt-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 bg-green-400 rounded-full"></div>
+                        <span className="text-sm font-medium text-gray-700">Mavjud vaqtlar</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 bg-red-400 rounded-full"></div>
+                        <span className="text-sm font-medium text-gray-700">Band qilingan</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 bg-blue-600 rounded-full"></div>
+                        <span className="text-sm font-medium text-gray-700">Tanlangan</span>
+                      </div>
+                    </div>
+                  </div>
 
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="flex justify-between items-center mb-3">
