@@ -3,14 +3,15 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
 import { BookingCalendar } from './components/BookingCalendar';
-import { CRM } from './components/CRM';
-import { Contracts } from './components/Contracts';
-import { Payments } from './components/Payments';
-import { MenuInventory } from './components/MenuInventory';
 import { Analytics } from './components/Analytics';
-import { Settings } from './components/Settings';
+import { CRM } from './components/CRM';
+import { Payments } from './components/Payments';
+import { Contracts } from './components/Contracts';
+import { MenuInventory } from './components/MenuInventory';
 import { UserManagement } from './components/UserManagement';
+import { Settings } from './components/Settings';
 import { LoginModal } from './components/LoginModal';
+import { ClientDashboard } from './components/ClientDashboard';
 
 export type UserRole = 'super_admin' | 'admin' | 'sales' | 'kitchen' | 'staff' | 'client' | 'vendor' | 'accountant';
 
@@ -73,6 +74,11 @@ function App() {
         />
       </>
     );
+  }
+
+  // Mijoz uchun alohida MVP interfeysi
+  if (user.role === 'client') {
+    return <ClientDashboard user={user} />;
   }
 
   const renderActiveView = () => {
