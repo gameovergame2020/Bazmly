@@ -26,6 +26,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [clientName, setClientName] = useState<string>('');
   const [clientPhone, setClientPhone] = useState<string>('');
+  const [customTime, setCustomTime] = useState<string>('10:00'); // Yangi state: custom vaqt uchun
 
   // Demo ma'lumotlar - real holatda server'dan keladi
   const availability: DayAvailability[] = [
@@ -154,14 +155,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   // Doimiy vaqt slotlari
   const generateTimeSlots = (available: boolean) => {
     if (!available) return [];
-    
+
     const allSlots = [
       { time: '10:00', available: true },
       { time: '14:00', available: true },
       { time: '18:00', available: true },
       { time: '20:00', available: true }
     ];
-    
+
     return allSlots;
   };
 
@@ -192,10 +193,10 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
       const dayDate = new Date(currentYear, currentMonth, day);
       const dateString = dayDate.toISOString().split('T')[0];
       const dayAvailability = availability.find(a => a.date === dateString);
-      
+
       // Agar ma'lumot yo'q bo'lsa, tasodifiy available qilamiz
       let isAvailable = dayAvailability?.available || false;
-      
+
       // Agar ma'lumot mavjud emas, doimiy qiymat beramiz
       if (!dayAvailability) {
         // O'tgan kunlarni band qilamiz
@@ -236,13 +237,13 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
   const getSelectedDayAvailability = () => {
     let dayData = availability.find(a => a.date === selectedDate);
-    
+
     // Agar ma'lumot yo'q bo'lsa, doimiy pattern ishlatamiz
     if (!dayData && selectedDate) {
       const today = new Date().toISOString().split('T')[0];
       const dayOfMonth = new Date(selectedDate).getDate();
       const isAvailable = selectedDate >= today && dayOfMonth % 3 !== 0;
-      
+
       // Doimiy vaqt slotlari yaratish
       const timeSlots = isAvailable ? [
         { time: '10:00', available: dayOfMonth % 4 !== 1 },
@@ -250,14 +251,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
         { time: '18:00', available: dayOfMonth % 4 !== 3 },
         { time: '20:00', available: dayOfMonth % 4 !== 0 }
       ] : [];
-      
+
       dayData = {
         date: selectedDate,
         available: isAvailable,
         timeSlots: timeSlots
       };
     }
-    
+
     return dayData;
   };
 
@@ -394,7 +395,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
               </div>
             </div>
 
-            
+
           </div>
         </div>
       </div>
@@ -423,6 +424,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     setShowTimeModal(false);
                     setSelectedDate('');
                     setSelectedTime('');
+                    setCustomTime('10:00'); // Modal yopilganda custom vaqtni reset qilish
+                    setClientName('');
+                    setClientPhone('');
                   }}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
@@ -558,7 +562,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
               {selectedTime && (
                 <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border border-green-200">
                   <h5 className="font-bold text-gray-900 text-xl mb-6">Ma'lumotlarni to'ldiring:</h5>
-                  
+
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Left side - Booking Summary */}
                     <div className="space-y-4">
@@ -599,7 +603,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           required
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Telefon raqam *
@@ -628,6 +632,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       setShowTimeModal(false);
                       setSelectedDate('');
                       setSelectedTime('');
+                      setCustomTime('10:00'); // Modal yopilganda custom vaqtni reset qilish
                       setClientName('');
                       setClientPhone('');
                     }}
