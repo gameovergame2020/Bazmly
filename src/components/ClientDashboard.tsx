@@ -444,11 +444,11 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                               setSelectedTime(newTime);
                             }
                           }}
-                          className="flex-1 px-4 py-3 text-lg font-medium bg-transparent border-none outline-none focus:ring-0 appearance-none cursor-pointer"
+                          className="flex-1 px-4 py-3 text-lg font-medium bg-transparent border-none outline-none focus:ring-0 appearance-none cursor-pointer hour-selector"
                           style={{ 
                             backgroundImage: 'none'
                           }}
-                          size={5}
+                          size={6}
                         >
                           {Array.from({ length: 16 }, (_, i) => {
                             const hour = i + 8; // 8:00 dan 23:00 gacha
@@ -495,16 +495,28 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       
                       {/* CSS to control dropdown height */}
                       <style jsx>{`
-                        select {
-                          max-height: 160px;
-                          overflow-y: auto;
+                        .hour-selector {
+                          height: 180px !important;
+                          overflow-y: scroll !important;
+                          scrollbar-width: thin;
+                          scrollbar-color: #cbd5e1 #f1f5f9;
+                        }
+                        .hour-selector::-webkit-scrollbar {
+                          width: 8px;
+                        }
+                        .hour-selector::-webkit-scrollbar-track {
+                          background: #f1f5f9;
+                          border-radius: 4px;
+                        }
+                        .hour-selector::-webkit-scrollbar-thumb {
+                          background: #cbd5e1;
+                          border-radius: 4px;
+                        }
+                        .hour-selector::-webkit-scrollbar-thumb:hover {
+                          background: #94a3b8;
                         }
                         select option {
                           padding: 8px 12px;
-                        }
-                        select[size] {
-                          height: auto;
-                          max-height: 160px;
                         }
                       `}</style>
                       
