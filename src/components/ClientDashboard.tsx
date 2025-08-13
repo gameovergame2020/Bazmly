@@ -59,6 +59,91 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
         { time: '18:00', available: true },
         { time: '20:00', available: false }
       ]
+    },
+    {
+      date: '2025-01-22',
+      available: true,
+      timeSlots: [
+        { time: '10:00', available: true },
+        { time: '14:00', available: true },
+        { time: '18:00', available: true },
+        { time: '20:00', available: true }
+      ]
+    },
+    {
+      date: '2025-01-23',
+      available: false,
+      timeSlots: []
+    },
+    {
+      date: '2025-01-24',
+      available: true,
+      timeSlots: [
+        { time: '10:00', available: false },
+        { time: '14:00', available: true },
+        { time: '18:00', available: true },
+        { time: '20:00', available: true }
+      ]
+    },
+    {
+      date: '2025-01-25',
+      available: true,
+      timeSlots: [
+        { time: '10:00', available: true },
+        { time: '14:00', available: true },
+        { time: '18:00', available: false },
+        { time: '20:00', available: true }
+      ]
+    },
+    {
+      date: '2025-01-26',
+      available: true,
+      timeSlots: [
+        { time: '10:00', available: true },
+        { time: '14:00', available: false },
+        { time: '18:00', available: true },
+        { time: '20:00', available: true }
+      ]
+    },
+    {
+      date: '2025-01-27',
+      available: false,
+      timeSlots: []
+    },
+    {
+      date: '2025-01-28',
+      available: true,
+      timeSlots: [
+        { time: '10:00', available: true },
+        { time: '14:00', available: true },
+        { time: '18:00', available: true },
+        { time: '20:00', available: false }
+      ]
+    },
+    {
+      date: '2025-01-29',
+      available: true,
+      timeSlots: [
+        { time: '10:00', available: false },
+        { time: '14:00', available: false },
+        { time: '18:00', available: true },
+        { time: '20:00', available: true }
+      ]
+    },
+    {
+      date: '2025-01-30',
+      available: true,
+      timeSlots: [
+        { time: '10:00', available: true },
+        { time: '14:00', available: true },
+        { time: '18:00', available: true },
+        { time: '20:00', available: true }
+      ]
+    },
+    {
+      date: '2025-01-31',
+      available: false,
+      timeSlots: []
     }
   ];
 
