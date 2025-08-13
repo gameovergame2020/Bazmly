@@ -417,7 +417,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
                   <p className="text-sm text-gray-600 mb-4">To'yxona ish vaqti: 08:00 - 23:00</p>
 
-                  {/* HTML Time Picker */}
+                  {/* Custom Time Picker */}
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-4 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border">
                       <div className="flex items-center space-x-3">
@@ -429,20 +429,126 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       </div>
                     </div>
 
-                    <input
-                      type="time"
-                      value={customTime}
-                      onChange={(e) => {
-                        setCustomTime(e.target.value);
-                        if (selectedDate) {
-                          setSelectedTime(e.target.value);
-                        }
-                      }}
-                      min="08:00"
-                      max="23:00"
-                      step="3600"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-medium mb-4"
-                    />
+                    {/* Custom Time Input */}
+                    <div className="relative">
+                      <div className="flex border border-gray-300 rounded-lg overflow-hidden bg-white">
+                        {/* Hours */}
+                        <select
+                          value={customTime.split(':')[0]}
+                          onChange={(e) => {
+                            const hours = e.target.value.padStart(2, '0');
+                            const minutes = customTime.split(':')[1] || '00';
+                            const newTime = `${hours}:${minutes}`;
+                            setCustomTime(newTime);
+                            if (selectedDate) {
+                              setSelectedTime(newTime);
+                            }
+                          }}
+                          className="flex-1 px-4 py-3 text-lg font-medium bg-transparent border-none outline-none focus:ring-0 appearance-none cursor-pointer"
+                          style={{ backgroundImage: 'none' }}
+                        >
+                          {Array.from({ length: 16 }, (_, i) => {
+                            const hour = i + 8; // 8:00 dan 23:00 gacha
+                            const hourStr = hour.toString().padStart(2, '0');
+                            const dayData = getSelectedDayAvailability();
+                            const isBooked = selectedDate && dayData?.timeSlots.some(slot => 
+                              slot.time === `${hourStr}:00` && slot.booked
+                            );
+                            return (
+                              <option 
+                                key={hour} 
+                                value={hourStr}
+                                className={isBooked ? 'text-red-600 bg-red-50' : 'text-green-600'}
+                              >
+                                {hourStr}
+                              </option>
+                            );
+                          })}
+                        </select>
+                        
+                        <div className="flex items-center px-2 text-lg font-medium text-gray-600">:</div>
+                        
+                        {/* Minutes */}
+                        <select
+                          value={customTime.split(':')[1] || '00'}
+                          onChange={(e) => {
+                            const hours = customTime.split(':')[0] || '08';
+                            const minutes = e.target.value;
+                            const newTime = `${hours}:${minutes}`;
+                            setCustomTime(newTime);
+                            if (selectedDate) {
+                              setSelectedTime(newTime);
+                            }
+                          }}
+                          className="flex-1 px-4 py-3 text-lg font-medium bg-transparent border-none outline-none focus:ring-0 appearance-none cursor-pointer"
+                          style={{ backgroundImage: 'none' }}
+                        >
+                          <option value="00">00</option>
+                          <option value="15">15</option>
+                          <option value="30">30</option>
+                          <option value="45">45</option>
+                        </select>
+                      </div>
+                      
+                      {/* Time indicator */}
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                        <Clock className="w-5 h-5 text-gray-400" />
+                      </div>
+                    </div>
+
+                    {/* Available Hours Display */}
+                    {selectedDate && (
+                      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                        <h5 className="font-medium text-gray-800 mb-3">Mavjud vaqtlar:</h5>
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                          {Array.from({ length: 16 }, (_, i) => {
+                            const hour = i + 8;
+                            const hourStr = hour.toString().padStart(2, '0');
+                            const timeStr = `${hourStr}:00`;
+                            const dayData = getSelectedDayAvailability();
+                            const isBooked = dayData?.timeSlots.some(slot => 
+                              slot.time === timeStr && slot.booked
+                            );
+                            const isSelected = customTime.startsWith(hourStr);
+                            
+                            return (
+                              <button
+                                key={hour}
+                                onClick={() => {
+                                  if (!isBooked) {
+                                    const newTime = `${hourStr}:00`;
+                                    setCustomTime(newTime);
+                                    setSelectedTime(newTime);
+                                  }
+                                }}
+                                disabled={isBooked}
+                                className={`
+                                  px-2 py-1 rounded text-sm font-medium transition-colors
+                                  ${isSelected ? 'ring-2 ring-blue-500' : ''}
+                                  ${isBooked 
+                                    ? 'bg-red-100 text-red-600 cursor-not-allowed border-red-300' 
+                                    : 'bg-green-100 text-green-700 hover:bg-green-200 cursor-pointer border-green-300'
+                                  }
+                                  border
+                                `}
+                              >
+                                {timeStr}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="flex items-center justify-center space-x-6 mt-3 text-xs">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                            <span className="text-gray-600">Mavjud</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                            <span className="text-gray-600">Band qilingan</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Band qilingan vaqtlar haqida ogohlantirish */}
                     {selectedDate && (() => {
