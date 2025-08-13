@@ -22,6 +22,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   // Demo ma'lumotlar - real holatda server'dan keladi
   const availability: DayAvailability[] = [
@@ -147,14 +148,28 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     }
   ];
 
+  // Har xil oylar uchun tasodifiy ma'lumotlar yaratish funksiyasi
+  const generateTimeSlots = (available: boolean) => {
+    if (!available) return [];
+    
+    const allSlots = [
+      { time: '10:00', available: Math.random() > 0.2 },
+      { time: '14:00', available: Math.random() > 0.3 },
+      { time: '18:00', available: Math.random() > 0.4 },
+      { time: '20:00', available: Math.random() > 0.5 }
+    ];
+    
+    return allSlots;
+  };
+
   const generateCalendarDays = () => {
-    const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
     const firstDay = new Date(currentYear, currentMonth, 1);
     const lastDay = new Date(currentYear, currentMonth + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
+    const today = new Date().toISOString().split('T')[0];
 
     const days = [];
 
@@ -171,23 +186,66 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
     // Joriy oyning kunlari
     for (let day = 1; day <= daysInMonth; day++) {
-      const currentDate = new Date(currentYear, currentMonth, day);
-      const dateString = currentDate.toISOString().split('T')[0];
+      const dayDate = new Date(currentYear, currentMonth, day);
+      const dateString = dayDate.toISOString().split('T')[0];
       const dayAvailability = availability.find(a => a.date === dateString);
+      
+      // Agar ma'lumot yo'q bo'lsa, tasodifiy available qilamiz
+      let isAvailable = dayAvailability?.available || false;
+      
+      // Agar ma'lumot mavjud emas, tasodifiy qiymat beramiz
+      if (!dayAvailability) {
+        // O'tgan kunlarni band qilamiz
+        if (dateString < today) {
+          isAvailable = false;
+        } else {
+          // Kelajak kunlar uchun tasodifiy available/band
+          isAvailable = Math.random() > 0.3; // 70% available
+        }
+      }
 
       days.push({
         date: day,
         isCurrentMonth: true,
         fullDate: dateString,
-        available: dayAvailability?.available || false
+        available: isAvailable
       });
     }
 
     return days;
   };
 
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      if (direction === 'prev') {
+        newDate.setMonth(prev.getMonth() - 1);
+      } else {
+        newDate.setMonth(prev.getMonth() + 1);
+      }
+      return newDate;
+    });
+    // Sana o'zgarganda tanlangan sanani tozalaymiz
+    setSelectedDate('');
+    setSelectedTime('');
+  };
+
   const getSelectedDayAvailability = () => {
-    return availability.find(a => a.date === selectedDate);
+    let dayData = availability.find(a => a.date === selectedDate);
+    
+    // Agar ma'lumot yo'q bo'lsa, tasodifiy yaratamiz
+    if (!dayData && selectedDate) {
+      const today = new Date().toISOString().split('T')[0];
+      const isAvailable = selectedDate >= today && Math.random() > 0.3;
+      
+      dayData = {
+        date: selectedDate,
+        available: isAvailable,
+        timeSlots: generateTimeSlots(isAvailable)
+      };
+    }
+    
+    return dayData;
   };
 
   const handleBooking = () => {
@@ -236,8 +294,22 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
             <div className="mb-8">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-gray-900">
-                  {new Date().toLocaleDateString('uz-UZ', { month: 'long', year: 'numeric' })}
+                  {currentDate.toLocaleDateString('uz-UZ', { month: 'long', year: 'numeric' })}
                 </h3>
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => navigateMonth('prev')}
+                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    ← Oldingi
+                  </button>
+                  <button 
+                    onClick={() => navigateMonth('next')}
+                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Keyingi →
+                  </button>
+                </div>
                 <div className="flex items-center space-x-4 text-sm">
                   <div className="flex items-center space-x-2">
                     <div className="w-3 h-3 bg-green-400 rounded-full"></div>
