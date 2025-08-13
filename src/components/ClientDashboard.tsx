@@ -35,9 +35,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
       available: true,
       timeSlots: [
         { time: '10:00', available: true },
-        { time: '14:00', available: false },
+        { time: '14:00', available: false, booked: true },
         { time: '18:00', available: true },
-        { time: '20:00', available: true }
+        { time: '20:00', available: false, booked: true }
       ]
     },
     {
@@ -46,7 +46,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
       timeSlots: [
         { time: '10:00', available: true },
         { time: '14:00', available: true },
-        { time: '18:00', available: false },
+        { time: '18:00', available: false, booked: true },
         { time: '20:00', available: true }
       ]
     },
@@ -454,6 +454,37 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                   Vaqt tanlash
                 </h4>
 
+                {/* Booked Times Display */}
+                <div className="mb-6">
+                  <h5 className="font-semibold text-gray-900 mb-4 flex items-center">
+                    <X className="w-5 h-5 mr-2 text-red-500" />
+                    Band qilingan vaqtlar
+                  </h5>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {getSelectedDayAvailability()?.timeSlots
+                      .filter(slot => !slot.available && slot.booked)
+                      .map((slot, index) => (
+                        <div
+                          key={index}
+                          className="bg-red-50 border-2 border-red-200 rounded-lg p-4 text-center cursor-not-allowed opacity-60"
+                        >
+                          <div className="text-lg font-bold text-red-700 mb-1">
+                            {slot.time}
+                          </div>
+                          <div className="text-xs text-red-600 font-medium">
+                            Band qilingan
+                          </div>
+                        </div>
+                      ))}
+                    {getSelectedDayAvailability()?.timeSlots
+                      .filter(slot => !slot.available && slot.booked).length === 0 && (
+                      <div className="col-span-full text-center text-gray-500 py-4">
+                        Bu kun uchun band qilingan vaqtlar yo'q
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Custom Time Selection */}
                 <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 border border-blue-200 mb-6">
                   <h5 className="font-semibold text-gray-900 mb-4 flex items-center">
@@ -472,8 +503,19 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         step="1800"
                         value={customTime}
                         onChange={(e) => {
-                          setCustomTime(e.target.value);
-                          setSelectedTime(e.target.value);
+                          const selectedTimeValue = e.target.value;
+                          const dayData = getSelectedDayAvailability();
+                          const isTimeBooked = dayData?.timeSlots.some(
+                            slot => slot.time === selectedTimeValue && slot.booked
+                          );
+                          
+                          if (isTimeBooked) {
+                            alert('Bu vaqt allaqachon band qilingan! Iltimos boshqa vaqt tanlang.');
+                            return;
+                          }
+                          
+                          setCustomTime(selectedTimeValue);
+                          setSelectedTime(selectedTimeValue);
                         }}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-medium"
                         style={{ 
@@ -493,11 +535,30 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       <div className="font-bold text-xl text-blue-600">
                         {customTime || '08:00'}
                       </div>
-                      <div className="text-sm font-medium text-green-600 mt-1">
-                        Narx: {
-                          customTime && parseInt(customTime.split(':')[0]) >= 18 ? '$2,000' :
-                          customTime && parseInt(customTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'
-                        }
+                      <div className="text-sm font-medium mt-1">
+                        {(() => {
+                          const dayData = getSelectedDayAvailability();
+                          const isTimeBooked = dayData?.timeSlots.some(
+                            slot => slot.time === customTime && slot.booked
+                          );
+                          
+                          if (isTimeBooked) {
+                            return (
+                              <span className="text-red-600 font-bold">
+                                ⚠️ Bu vaqt band qilingan!
+                              </span>
+                            );
+                          }
+                          
+                          return (
+                            <span className="text-green-600">
+                              Narx: {
+                                customTime && parseInt(customTime.split(':')[0]) >= 18 ? '$2,000' :
+                                customTime && parseInt(customTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'
+                              }
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
