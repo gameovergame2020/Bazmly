@@ -21,12 +21,10 @@ interface DayAvailability {
 export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
-  const [showBookingForm, setShowBookingForm] = useState(false);
-  const [showTimeModal, setShowTimeModal] = useState(false);
+  const [customTime, setCustomTime] = useState<string>('10:00'); // Yangi state: custom vaqt uchun
   const [currentDate, setCurrentDate] = useState(new Date());
   const [clientName, setClientName] = useState<string>('');
   const [clientPhone, setClientPhone] = useState<string>('');
-  const [customTime, setCustomTime] = useState<string>('10:00'); // Yangi state: custom vaqt uchun
 
   // Demo ma'lumotlar - real holatda server'dan keladi
   const availability: DayAvailability[] = [
@@ -266,8 +264,6 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     const finalTime = selectedTime || customTime;
     if (selectedDate && finalTime && clientName && clientPhone) {
       alert(`Band qilindi!\nSana: ${selectedDate}\nVaqt: ${finalTime}\nMijoz: ${clientName}\nTelefon: ${clientPhone}`);
-      setShowBookingForm(false);
-      setShowTimeModal(false);
       setSelectedDate('');
       setSelectedTime('');
       setCustomTime('10:00');
@@ -318,13 +314,13 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                   {currentDate.toLocaleDateString('uz-UZ', { month: 'long', year: 'numeric' })}
                 </h3>
                 <div className="flex space-x-2">
-                  <button 
+                  <button
                     onClick={() => navigateMonth('prev')}
                     className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     ← Oldingi
                   </button>
-                  <button 
+                  <button
                     onClick={() => navigateMonth('next')}
                     className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   >
@@ -365,7 +361,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         if (day.isCurrentMonth && day.available) {
                           setSelectedDate(day.fullDate);
                           setSelectedTime('');
-                          setShowTimeModal(true);
+                          setCustomTime('10:00'); // Sana o'zgarganda custom vaqtni reset qilish
                         }
                       }}
                       disabled={!day.isCurrentMonth || !day.available}
@@ -374,8 +370,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         ${day.isCurrentMonth ? 'text-gray-900' : 'text-gray-300'}
                         ${isToday ? 'ring-2 ring-blue-500' : ''}
                         ${isSelected ? 'bg-blue-100 border-blue-300' : 'border-gray-200'}
-                        ${day.available && day.isCurrentMonth 
-                          ? 'hover:bg-green-50 hover:border-green-300 cursor-pointer' 
+                        ${day.available && day.isCurrentMonth
+                          ? 'hover:bg-green-50 hover:border-green-300 cursor-pointer'
                           : 'cursor-not-allowed'
                         }
                         ${!day.available && day.isCurrentMonth ? 'bg-red-50 border-red-200' : ''}
@@ -396,299 +392,226 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                 })}
               </div>
             </div>
-
-
           </div>
         </div>
-      </div>
 
-      {/* Time Selection Modal */}
-      {showTimeModal && selectedDate && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 flex items-center">
-                    <Calendar className="w-7 h-7 mr-3 text-blue-600" />
-                    {new Date(selectedDate).toLocaleDateString('uz-UZ', { 
-                      weekday: 'long', 
-                      month: 'long', 
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
-                  </h3>
-                  <p className="text-gray-600 mt-1">Mavjud vaqtlar va qo'shimcha ma'lumotlar</p>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowTimeModal(false);
-                    setSelectedDate('');
-                    setSelectedTime('');
-                    setCustomTime('10:00'); // Modal yopilganda custom vaqtni reset qilish
-                    setClientName('');
-                    setClientPhone('');
-                  }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <X className="w-6 h-6 text-gray-500" />
-                </button>
-              </div>
-              <div className="mt-3 flex items-center justify-between">
-                <div className="bg-green-100 text-green-800 px-3 py-2 rounded-lg text-sm font-medium">
-                  ✓ Mavjud kun
-                </div>
-                <p className="text-sm text-gray-500">
-                  {getSelectedDayAvailability()?.timeSlots.filter(slot => slot.available).length || 0} ta vaqt mavjud
-                </p>
-              </div>
-            </div>
+        {/* Booking Form - Always Visible */}
+        <div className="mt-8 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border border-blue-200 overflow-hidden">
+          <div className="bg-white border-b border-gray-200 px-6 py-4">
+            <h3 className="text-2xl font-bold text-gray-900 flex items-center">
+              <Clock className="w-7 h-7 mr-3 text-blue-600" />
+              Vaqt va Ma'lumotlarni To'ldiring
+            </h3>
+            <p className="text-gray-600 mt-1">Kerakli vaqt va shaxsiy ma'lumotlaringizni kiriting</p>
+          </div>
 
-            {/* Modal Content */}
-            <div className="p-6">
-              {/* Time Selection */}
-              <div className="mb-8">
-                <h4 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                  <Clock className="w-6 h-6 mr-3 text-blue-600" />
-                  Vaqt tanlash
-                </h4>
+          <div className="p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left side - Time Selection */}
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg p-6 border shadow-sm">
+                  <h4 className="font-bold text-gray-900 mb-4 flex items-center text-lg">
+                    <Clock className="w-5 h-5 mr-2 text-blue-600" />
+                    Vaqt Tanlash
+                  </h4>
 
-                {/* Booked Times Display */}
-                <div className="mb-6">
-                  <h5 className="font-semibold text-gray-900 mb-4 flex items-center">
-                    <X className="w-5 h-5 mr-2 text-red-500" />
-                    Band qilingan vaqtlar
-                  </h5>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {getSelectedDayAvailability()?.timeSlots
-                      .filter(slot => !slot.available && slot.booked)
-                      .map((slot, index) => (
-                        <div
-                          key={index}
-                          className="bg-red-50 border-2 border-red-200 rounded-lg p-4 text-center cursor-not-allowed opacity-60"
-                        >
-                          <div className="text-lg font-bold text-red-700 mb-1">
-                            {slot.time}
-                          </div>
-                          <div className="text-xs text-red-600 font-medium">
-                            Band qilingan
-                          </div>
-                        </div>
-                      ))}
-                    {getSelectedDayAvailability()?.timeSlots
-                      .filter(slot => !slot.available && slot.booked).length === 0 && (
-                      <div className="col-span-full text-center text-gray-500 py-4">
-                        Bu kun uchun band qilingan vaqtlar yo'q
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  <p className="text-sm text-gray-600 mb-4">To'yxona ish vaqti: 08:00 - 23:00</p>
 
-                {/* Combined Time Selection and Booking Form */}
-                <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 border border-blue-200">
-                  <h5 className="font-semibold text-gray-900 mb-6 flex items-center text-xl">
-                    <Clock className="w-6 h-6 mr-3 text-blue-600" />
-                    Vaqt tanlash va ma'lumotlarni to'ldirish
-                  </h5>
+                  <input
+                    type="time"
+                    min="08:00"
+                    max="23:00"
+                    step="1800"
+                    value={customTime}
+                    onChange={(e) => {
+                      const selectedTimeValue = e.target.value;
+                      const dayData = selectedDate ? getSelectedDayAvailability() : null;
+                      const isTimeBooked = dayData?.timeSlots.some(
+                        slot => slot.time === selectedTimeValue && slot.booked
+                      );
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Left side - Time Selection */}
-                    <div className="space-y-4">
-                      <div className="bg-white rounded-lg p-4 border">
-                        <h6 className="font-semibold text-gray-900 mb-3">Kerakli vaqtni tanlang:</h6>
-                        <p className="text-sm text-gray-600 mb-3">To'yxona ish vaqti: 08:00 - 23:00</p>
-                        
-                        <input
-                          type="time"
-                          min="08:00"
-                          max="23:00"
-                          step="1800"
-                          value={customTime}
-                          onChange={(e) => {
-                            const selectedTimeValue = e.target.value;
-                            const dayData = getSelectedDayAvailability();
-                            const isTimeBooked = dayData?.timeSlots.some(
-                              slot => slot.time === selectedTimeValue && slot.booked
-                            );
-                            
-                            if (isTimeBooked) {
-                              alert('Bu vaqt allaqachon band qilingan! Iltimos boshqa vaqt tanlang.');
-                              return;
-                            }
-                            
-                            setCustomTime(selectedTimeValue);
-                            setSelectedTime(selectedTimeValue);
-                          }}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-medium mb-4"
-                          style={{ 
-                            appearance: 'none',
-                            WebkitAppearance: 'none',
-                            MozAppearance: 'textfield'
-                          }}
-                          data-format="24"
-                          lang="en-GB"
-                        />
+                      if (isTimeBooked) {
+                        alert('Bu vaqt allaqachon band qilingan! Iltimos boshqa vaqt tanlang.');
+                        return;
+                      }
 
-                        <div className="bg-gray-50 rounded-lg p-3">
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Tanlangan vaqt:</span>
-                            <span className="font-bold text-xl text-blue-600">
-                              {customTime || '08:00'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center mt-2">
-                            <span className="text-gray-600">Narx:</span>
-                            <span className="font-bold text-green-600">
-                              {(() => {
-                                const dayData = getSelectedDayAvailability();
-                                const isTimeBooked = dayData?.timeSlots.some(
-                                  slot => slot.time === customTime && slot.booked
-                                );
-                                
-                                if (isTimeBooked) {
-                                  return (
-                                    <span className="text-red-600">
-                                      ⚠️ Bu vaqt band!
-                                    </span>
-                                  );
-                                }
-                                
-                                return customTime && parseInt(customTime.split(':')[0]) >= 18 ? '$2,000' :
-                                       customTime && parseInt(customTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200';
-                              })()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Summary */}
-                      <div className="bg-white rounded-lg p-4 border">
-                        <h6 className="font-semibold text-gray-900 mb-3">Buyurtma xulosasi:</h6>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Sana:</span>
-                            <span className="font-medium">{new Date(selectedDate).toLocaleDateString('uz-UZ')}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Vaqt:</span>
-                            <span className="font-medium">{customTime || '08:00'}</span>
-                          </div>
-                          <div className="flex justify-between border-t pt-2">
-                            <span className="text-gray-600">Jami narx:</span>
-                            <span className="font-bold text-lg text-green-600">
-                              {customTime && parseInt(customTime.split(':')[0]) >= 18 ? '$2,000' : 
-                               customTime && parseInt(customTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Right side - Client Form */}
-                    <div className="space-y-4">
-                      <div className="bg-white rounded-lg p-4 border">
-                        <h6 className="font-semibold text-gray-900 mb-4">Shaxsiy ma'lumotlar:</h6>
-                        
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Ism Familiya *
-                            </label>
-                            <input
-                              type="text"
-                              value={clientName}
-                              onChange={(e) => {
-                                setClientName(e.target.value);
-                                if (e.target.value.trim() && customTime) {
-                                  setSelectedTime(customTime);
-                                }
-                              }}
-                              placeholder="Ismingiz va familiyangizni kiriting"
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              required
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Telefon raqam *
-                            </label>
-                            <input
-                              type="tel"
-                              value={clientPhone}
-                              onChange={(e) => {
-                                setClientPhone(e.target.value);
-                                if (e.target.value.trim() && customTime) {
-                                  setSelectedTime(customTime);
-                                }
-                              }}
-                              placeholder="+998 90 123 45 67"
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              required
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="bg-white rounded-lg p-4 border">
-                        <button
-                          onClick={handleBooking}
-                          disabled={!clientName.trim() || !clientPhone.trim() || !customTime}
-                          className={`w-full flex items-center justify-center space-x-3 px-6 py-4 rounded-lg transition-all font-bold text-lg shadow-lg ${
-                            clientName.trim() && clientPhone.trim() && customTime
-                              ? 'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700'
-                              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          }`}
-                        >
-                          <Check className="w-6 h-6" />
-                          <span>Band qilish</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            {(selectedTime || customTime) && (
-              <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-2xl">
-                <div className="flex space-x-4">
-                  <button
-                    onClick={() => {
-                      setShowTimeModal(false);
-                      setSelectedDate('');
-                      setSelectedTime('');
-                      setCustomTime('10:00'); // Modal yopilganda custom vaqtni reset qilish
-                      setClientName('');
-                      setClientPhone('');
+                      setCustomTime(selectedTimeValue);
+                      if (selectedDate) {
+                        setSelectedTime(selectedTimeValue);
+                      }
                     }}
-                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Bekor qilish
-                  </button>
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-medium mb-4"
+                    style={{
+                      appearance: 'none',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'textfield'
+                    }}
+                    data-format="24"
+                    lang="en-GB"
+                  />
+
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-gray-600 font-medium">Tanlangan vaqt:</span>
+                      <span className="font-bold text-xl text-blue-600">
+                        {customTime}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 font-medium">Narx:</span>
+                      <span className="font-bold text-lg text-green-600">
+                        {customTime && parseInt(customTime.split(':')[0]) >= 18 ? '$2,000' :
+                         customTime && parseInt(customTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Summary */}
+                {selectedDate && (
+                  <div className="bg-white rounded-lg p-6 border shadow-sm">
+                    <h4 className="font-bold text-gray-900 mb-4">Buyurtma Xulosasi:</h4>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Sana:</span>
+                        <span className="font-medium">{new Date(selectedDate).toLocaleDateString('uz-UZ')}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Vaqt:</span>
+                        <span className="font-medium">{customTime}</span>
+                      </div>
+                      <hr className="my-2" />
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-900 font-semibold">Jami narx:</span>
+                        <span className="font-bold text-xl text-green-600">
+                          {customTime && parseInt(customTime.split(':')[0]) >= 18 ? '$2,000' :
+                           customTime && parseInt(customTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Right side - Client Form */}
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg p-6 border shadow-sm">
+                  <h4 className="font-bold text-gray-900 mb-4 flex items-center text-lg">
+                    <Users className="w-5 h-5 mr-2 text-blue-600" />
+                    Shaxsiy Ma'lumotlar
+                  </h4>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Ism Familiya *
+                      </label>
+                      <input
+                        type="text"
+                        value={clientName}
+                        onChange={(e) => setClientName(e.target.value)}
+                        placeholder="Ismingiz va familiyangizni kiriting"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Telefon Raqam *
+                      </label>
+                      <input
+                        type="tel"
+                        value={clientPhone}
+                        onChange={(e) => setClientPhone(e.target.value)}
+                        placeholder="+998 90 123 45 67"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Qo'shimcha Ma'lumot
+                      </label>
+                      <textarea
+                        placeholder="Maxsus talablar yoki qo'shimcha ma'lumotlar..."
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Button */}
+                <div className="bg-white rounded-lg p-6 border shadow-sm">
                   <button
                     onClick={handleBooking}
-                    disabled={!clientName.trim() || !clientPhone.trim()}
-                    className={`flex-1 flex items-center justify-center space-x-3 px-6 py-3 rounded-lg transition-all font-bold text-lg shadow-lg ${
-                      clientName.trim() && clientPhone.trim()
-                        ? 'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700'
+                    disabled={!selectedDate || !clientName.trim() || !clientPhone.trim() || !customTime}
+                    className={`w-full flex items-center justify-center space-x-3 px-6 py-4 rounded-lg transition-all font-bold text-lg shadow-lg ${
+                      selectedDate && clientName.trim() && clientPhone.trim() && customTime
+                        ? 'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700 transform hover:scale-105'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                   >
                     <Check className="w-6 h-6" />
-                    <span>Band qilish</span>
+                    <span>
+                      {!selectedDate ? 'Avval sana tanlang' :
+                       !clientName.trim() || !clientPhone.trim() ? 'Ma\'lumotlarni to\'ldiring' :
+                       'Band Qilish'}
+                    </span>
                   </button>
+
+                  {selectedDate && (
+                    <div className="mt-3 text-center">
+                      <p className="text-sm text-gray-600">
+                        {new Date(selectedDate).toLocaleDateString('uz-UZ', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long'
+                        })} kuni band qilinyapti
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Band Qilingan Vaqtlar Display */}
+            {selectedDate && (
+              <div className="mt-8 bg-white rounded-lg p-6 border shadow-sm">
+                <h4 className="font-bold text-gray-900 mb-4 flex items-center">
+                  <X className="w-5 h-5 mr-2 text-red-500" />
+                  {new Date(selectedDate).toLocaleDateString('uz-UZ')} - Band Qilingan Vaqtlar
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {getSelectedDayAvailability()?.timeSlots
+                    .filter(slot => !slot.available && slot.booked)
+                    .map((slot, index) => (
+                      <div
+                        key={index}
+                        className="bg-red-50 border-2 border-red-200 rounded-lg p-4 text-center cursor-not-allowed opacity-60"
+                      >
+                        <div className="text-lg font-bold text-red-700 mb-1">
+                          {slot.time}
+                        </div>
+                        <div className="text-xs text-red-600 font-medium">
+                          Band qilingan
+                        </div>
+                      </div>
+                    ))}
+                  {getSelectedDayAvailability()?.timeSlots
+                    .filter(slot => !slot.available && slot.booked).length === 0 && (
+                    <div className="col-span-full text-center text-gray-500 py-4">
+                      Bu kun uchun band qilingan vaqtlar yo'q
+                    </div>
+                  )}
                 </div>
               </div>
             )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
