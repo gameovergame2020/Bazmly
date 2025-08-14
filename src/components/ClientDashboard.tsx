@@ -374,63 +374,65 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {/* Calendar Header */}
-          <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-green-50">
-            <div className="flex items-center space-x-3">
-              <Calendar className="w-8 h-8 text-blue-600" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Vaqt Band Qilish</h2>
-                <p className="text-gray-600">Kerakli sana va vaqtni tanlang</p>
+          <div className="p-3 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-green-50">
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+              <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
+              <div className="flex-1">
+                <h2 className="text-lg sm:text-2xl font-bold text-gray-900">Vaqt Band Qilish</h2>
+                <p className="text-sm sm:text-base text-gray-600 hidden sm:block">Kerakli sana va vaqtni tanlang</p>
               </div>
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-3 sm:p-6">
             {/* Calendar Grid */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900">
+            <div className="mb-6 sm:mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 text-center sm:text-left">
                   {currentDate.toLocaleDateString('uz-UZ', { month: 'long', year: 'numeric' })}
                 </h3>
-                <div className="flex space-x-2">
+                
+                <div className="flex justify-center sm:justify-start space-x-2">
                   <button
                     onClick={() => navigateMonth('prev')}
-                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     ← Oldingi
                   </button>
                   <button
                     onClick={() => navigateMonth('next')}
-                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     Keyingi →
                   </button>
                 </div>
-                <div className="flex items-center space-x-4 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                
+                <div className="flex items-center justify-center sm:justify-end space-x-3 sm:space-x-4 text-xs sm:text-sm">
+                  <div className="flex items-center space-x-1 sm:space-x-2">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full"></div>
                     <span>Mavjud</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  <div className="flex items-center space-x-1 sm:space-x-2">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-400 rounded-full"></div>
                     <span>Band</span>
                   </div>
                 </div>
               </div>
 
               {/* Days of Week */}
-              <div className="grid grid-cols-7 gap-1 mb-2">
+              <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2">
                 {['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'].map(day => (
-                  <div key={day} className="p-3 text-center text-sm font-medium text-gray-600">
+                  <div key={day} className="p-1.5 sm:p-3 text-center text-xs sm:text-sm font-medium text-gray-600">
                     {day}
                   </div>
                 ))}
               </div>
 
               {/* Calendar Days */}
-              <div className="grid grid-cols-7 gap-1">
+              <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
                 {generateCalendarDays().map((day, index) => {
                   const isSelected = day.fullDate === selectedDate;
                   const isToday = day.fullDate === new Date().toISOString().split('T')[0];
@@ -448,9 +450,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       }}
                       disabled={!day.isCurrentMonth || !day.available}
                       className={`
-                        min-h-16 p-2 rounded-lg border transition-all relative
+                        min-h-12 sm:min-h-16 p-1 sm:p-2 rounded-md sm:rounded-lg border transition-all relative
                         ${day.isCurrentMonth ? 'text-gray-900' : 'text-gray-300'}
-                        ${isToday ? 'ring-2 ring-blue-500' : ''}
+                        ${isToday ? 'ring-1 sm:ring-2 ring-blue-500' : ''}
                         ${isSelected ? 'bg-blue-100 border-blue-300' : 'border-gray-200'}
                         ${day.available && day.isCurrentMonth
                           ? 'hover:bg-green-50 hover:border-green-300 cursor-pointer'
@@ -459,13 +461,13 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         ${!day.available && day.isCurrentMonth ? 'bg-red-50 border-red-200' : ''}
                       `}
                     >
-                      <div className="text-sm font-medium">{day.date}</div>
+                      <div className="text-xs sm:text-sm font-medium">{day.date}</div>
                       {day.isCurrentMonth && (
-                        <div className="absolute top-1 right-1">
+                        <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1">
                           {day.available ? (
-                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full"></div>
                           ) : (
-                            <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-400 rounded-full"></div>
                           )}
                         </div>
                       )}
