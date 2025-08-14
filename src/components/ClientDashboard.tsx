@@ -21,8 +21,6 @@ interface DayAvailability {
 export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
-  const [selectedStartTime, setSelectedStartTime] = useState<string>('');
-  const [selectedEndTime, setSelectedEndTime] = useState<string>('');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [clientName, setClientName] = useState<string>('');
   const [clientPhone, setClientPhone] = useState<string>('');
@@ -262,16 +260,10 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   };
 
   const handleBooking = () => {
-    const timeInfo = selectedStartTime && selectedEndTime 
-      ? `${selectedStartTime} dan ${selectedEndTime} gacha`
-      : selectedTime;
-      
-    if (selectedDate && (selectedTime || (selectedStartTime && selectedEndTime)) && clientName && clientPhone) {
-      alert(`Band qilindi!\nSana: ${selectedDate}\nVaqt: ${timeInfo}\nMijoz: ${clientName}\nTelefon: ${clientPhone}`);
+    if (selectedDate && selectedTime && clientName && clientPhone) {
+      alert(`Band qilindi!\nSana: ${selectedDate}\nVaqt: ${selectedTime}\nMijoz: ${clientName}\nTelefon: ${clientPhone}`);
       setSelectedDate('');
       setSelectedTime('');
-      setSelectedStartTime('');
-      setSelectedEndTime('');
       setClientName('');
       setClientPhone('');
     } else {
@@ -421,154 +413,56 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
                   <p className="text-sm text-gray-600 mb-4">To'yxona ish vaqti: 08:00 - 23:00</p>
 
-                  {/* Vaqt tanlash usullari */}
+                  {/* Mavjud vaqtlar */}
                   {selectedDate && (
-                    <div className="mb-6 space-y-4">
-                      {/* Usul tanlash */}
-                      <div className="flex items-center space-x-4 mb-4">
-                        <span className="text-sm font-medium text-gray-700">Tanlash usuli:</span>
-                        <label className="flex items-center space-x-2">
-                          <input
-                            type="radio"
-                            name="timeMode"
-                            checked={!selectedStartTime && !selectedEndTime}
-                            onChange={() => {
-                              setSelectedStartTime('');
-                              setSelectedEndTime('');
-                            }}
-                            className="text-blue-600"
-                          />
-                          <span className="text-sm text-gray-700">Bitta vaqt</span>
-                        </label>
-                        <label className="flex items-center space-x-2">
-                          <input
-                            type="radio"
-                            name="timeMode"
-                            checked={selectedStartTime !== '' || selectedEndTime !== ''}
-                            onChange={() => {
-                              setSelectedTime('');
-                            }}
-                            className="text-blue-600"
-                          />
-                          <span className="text-sm text-gray-700">Vaqt oralig'i</span>
-                        </label>
-                      </div>
-
-                      {/* Vaqt oralig'i tanlash */}
-                      {(selectedStartTime !== '' || selectedEndTime !== '') ? (
-                        <div className="bg-white border-2 border-blue-400 rounded-lg p-4">
-                          <h5 className="font-bold text-gray-900 mb-4 text-center">Vaqt Oralig'ini Tanlang:</h5>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Boshlanish vaqti:
-                              </label>
-                              <select
-                                value={selectedStartTime}
-                                onChange={(e) => setSelectedStartTime(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              >
-                                <option value="">Tanlang...</option>
-                                {Array.from({ length: 16 }, (_, i) => {
-                                  const hour = i + 8;
-                                  const timeStr = `${hour.toString().padStart(2, '0')}:00`;
-                                  return (
-                                    <option key={hour} value={timeStr}>
-                                      {timeStr}
-                                    </option>
-                                  );
-                                })}
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Tugash vaqti:
-                              </label>
-                              <select
-                                value={selectedEndTime}
-                                onChange={(e) => setSelectedEndTime(e.target.value)}
-                                disabled={!selectedStartTime}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-                              >
-                                <option value="">Tanlang...</option>
-                                {selectedStartTime && Array.from({ length: 16 }, (_, i) => {
-                                  const hour = i + 8;
-                                  const timeStr = `${hour.toString().padStart(2, '0')}:00`;
-                                  const startHour = parseInt(selectedStartTime.split(':')[0]);
-                                  // Faqat boshlanish vaqtidan keyingi vaqtlarni ko'rsatish
-                                  if (hour > startHour) {
-                                    return (
-                                      <option key={hour} value={timeStr}>
-                                        {timeStr}
-                                      </option>
-                                    );
+                    <div className="mb-6">
+                      <div className="bg-white border-2 border-red-400 rounded-lg p-4">
+                        <h5 className="font-bold text-gray-900 mb-4 text-center">Mavjud vaqtlar:</h5>
+                        <div className="grid grid-cols-4 gap-3">
+                          {Array.from({ length: 16 }, (_, i) => {
+                            const hour = i + 8;
+                            const timeStr = `${hour.toString().padStart(2, '0')}:00`;
+                            const dayData = getSelectedDayAvailability();
+                            const isBooked = dayData?.timeSlots.some(slot => 
+                              slot.time === timeStr && slot.booked
+                            );
+                            const isSelected = selectedTime === timeStr;
+                            
+                            return (
+                              <button
+                                key={hour}
+                                onClick={() => {
+                                  if (!isBooked) {
+                                    setSelectedTime(timeStr);
                                   }
-                                  return null;
-                                }).filter(Boolean)}
-                              </select>
-                            </div>
-                          </div>
-                          {selectedStartTime && selectedEndTime && (
-                            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-center">
-                              <span className="font-medium text-green-700">
-                                Tanlangan vaqt: {selectedStartTime} dan {selectedEndTime} gacha
-                              </span>
-                              <div className="text-sm text-green-600 mt-1">
-                                Davomiyligi: {parseInt(selectedEndTime.split(':')[0]) - parseInt(selectedStartTime.split(':')[0])} soat
-                              </div>
-                            </div>
-                          )}
+                                }}
+                                disabled={isBooked}
+                                className={`
+                                  px-3 py-2 rounded-lg text-sm font-medium transition-all border-2
+                                  ${isSelected 
+                                    ? 'bg-blue-500 text-white border-blue-600' 
+                                    : isBooked 
+                                      ? 'bg-red-100 text-red-600 border-red-300 cursor-not-allowed' 
+                                      : 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 cursor-pointer'
+                                  }
+                                `}
+                              >
+                                {timeStr}
+                              </button>
+                            );
+                          })}
                         </div>
-                      ) : (
-                        /* Bitta vaqt tanlash */
-                        <div className="bg-white border-2 border-red-400 rounded-lg p-4">
-                          <h5 className="font-bold text-gray-900 mb-4 text-center">Mavjud vaqtlar:</h5>
-                          <div className="grid grid-cols-4 gap-3">
-                            {Array.from({ length: 16 }, (_, i) => {
-                              const hour = i + 8;
-                              const timeStr = `${hour.toString().padStart(2, '0')}:00`;
-                              const dayData = getSelectedDayAvailability();
-                              const isBooked = dayData?.timeSlots.some(slot => 
-                                slot.time === timeStr && slot.booked
-                              );
-                              const isSelected = selectedTime === timeStr;
-                              
-                              return (
-                                <button
-                                  key={hour}
-                                  onClick={() => {
-                                    if (!isBooked) {
-                                      setSelectedTime(timeStr);
-                                    }
-                                  }}
-                                  disabled={isBooked}
-                                  className={`
-                                    px-3 py-2 rounded-lg text-sm font-medium transition-all border-2
-                                    ${isSelected 
-                                      ? 'bg-blue-500 text-white border-blue-600' 
-                                      : isBooked 
-                                        ? 'bg-red-100 text-red-600 border-red-300 cursor-not-allowed' 
-                                        : 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 cursor-pointer'
-                                    }
-                                  `}
-                                >
-                                  {timeStr}
-                                </button>
-                              );
-                            })}
+                        <div className="flex items-center justify-center space-x-6 mt-4 text-sm">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                            <span className="text-gray-700">Mavjud</span>
                           </div>
-                          <div className="flex items-center justify-center space-x-6 mt-4 text-sm">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                              <span className="text-gray-700">Mavjud</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                              <span className="text-gray-700">Band qilingan</span>
-                            </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                            <span className="text-gray-700">Band qilingan</span>
                           </div>
                         </div>
-                      )}
+                      </div>
                     </div>
                   )}
 
@@ -576,27 +470,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     <div className="flex justify-between items-center mb-3">
                       <span className="text-gray-600 font-medium">Tanlangan vaqt:</span>
                       <span className="font-bold text-xl text-blue-600">
-                        {selectedStartTime && selectedEndTime 
-                          ? `${selectedStartTime} - ${selectedEndTime}`
-                          : selectedTime || 'Vaqt tanlanmagan'}
+                        {selectedTime || 'Vaqt tanlanmagan'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 font-medium">Narx:</span>
                       <span className="font-bold text-lg text-green-600">
-                        {(() => {
-                          if (selectedStartTime && selectedEndTime) {
-                            const startHour = parseInt(selectedStartTime.split(':')[0]);
-                            const endHour = parseInt(selectedEndTime.split(':')[0]);
-                            const duration = endHour - startHour;
-                            const basePrice = startHour >= 18 ? 2000 : startHour >= 10 ? 1500 : 1200;
-                            return `$${basePrice * duration}`;
-                          } else if (selectedTime) {
-                            const hour = parseInt(selectedTime.split(':')[0]);
-                            return hour >= 18 ? '$2,000' : hour >= 10 ? '$1,500' : '$1,200';
-                          }
-                          return '$0';
-                        })()}
+                        {selectedTime && parseInt(selectedTime.split(':')[0]) >= 18 ? '$2,000' :
+                         selectedTime && parseInt(selectedTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
                       </span>
                     </div>
                   </div>
@@ -613,29 +494,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Vaqt:</span>
-                        <span className="font-medium">
-                          {selectedStartTime && selectedEndTime 
-                            ? `${selectedStartTime} - ${selectedEndTime} (${parseInt(selectedEndTime.split(':')[0]) - parseInt(selectedStartTime.split(':')[0])} soat)`
-                            : selectedTime || 'Tanlanmagan'}
-                        </span>
+                        <span className="font-medium">{selectedTime || 'Tanlanmagan'}</span>
                       </div>
                       <hr className="my-2" />
                       <div className="flex justify-between items-center">
                         <span className="text-gray-900 font-semibold">Jami narx:</span>
                         <span className="font-bold text-xl text-green-600">
-                          {(() => {
-                            if (selectedStartTime && selectedEndTime) {
-                              const startHour = parseInt(selectedStartTime.split(':')[0]);
-                              const endHour = parseInt(selectedEndTime.split(':')[0]);
-                              const duration = endHour - startHour;
-                              const basePrice = startHour >= 18 ? 2000 : startHour >= 10 ? 1500 : 1200;
-                              return `$${basePrice * duration}`;
-                            } else if (selectedTime) {
-                              const hour = parseInt(selectedTime.split(':')[0]);
-                              return hour >= 18 ? '$2,000' : hour >= 10 ? '$1,500' : '$1,200';
-                            }
-                            return '$0';
-                          })()}
+                          {selectedTime && parseInt(selectedTime.split(':')[0]) >= 18 ? '$2,000' :
+                           selectedTime && parseInt(selectedTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
                         </span>
                       </div>
                     </div>
@@ -688,9 +554,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                 <div className="bg-white rounded-lg p-6 border shadow-sm">
                   <button
                     onClick={handleBooking}
-                    disabled={!selectedDate || !clientName.trim() || !clientPhone.trim() || (!selectedTime && !(selectedStartTime && selectedEndTime))}
+                    disabled={!selectedDate || !clientName.trim() || !clientPhone.trim() || !selectedTime}
                     className={`w-full flex items-center justify-center space-x-3 px-6 py-4 rounded-lg transition-all font-bold text-lg shadow-lg ${
-                      selectedDate && clientName.trim() && clientPhone.trim() && (selectedTime || (selectedStartTime && selectedEndTime))
+                      selectedDate && clientName.trim() && clientPhone.trim() && selectedTime
                         ? 'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700 transform hover:scale-105'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
@@ -699,7 +565,6 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     <span>
                       {!selectedDate ? 'Avval sana tanlang' :
                        !clientName.trim() || !clientPhone.trim() ? 'Ma\'lumotlarni to\'ldiring' :
-                       (!selectedTime && !(selectedStartTime && selectedEndTime)) ? 'Vaqt tanlang' :
                        'Band Qilish'}
                     </span>
                   </button>
