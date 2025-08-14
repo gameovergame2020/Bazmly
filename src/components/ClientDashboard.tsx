@@ -21,6 +21,9 @@ interface DayAvailability {
 export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
+  const [selectedEndTime, setSelectedEndTime] = useState<string>('');
+  const [showTimeRangeSelector, setShowTimeRangeSelector] = useState<boolean>(false);
+  const [tempStartTime, setTempStartTime] = useState<string>('');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [clientName, setClientName] = useState<string>('');
   const [clientPhone, setClientPhone] = useState<string>('');
@@ -259,11 +262,52 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     return dayData;
   };
 
+  // Vaqt oralig'ini hisoblash uchun yordamchi funksiya
+  const generateEndTimeOptions = (startTime: string) => {
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const startMinutes = startHour * 60 + startMinute;
+    const options = [];
+    
+    // 30 daqiqadan 8 soatgacha
+    for (let minutes = 30; minutes <= 480; minutes += 15) {
+      const endMinutes = startMinutes + minutes;
+      if (endMinutes >= 23 * 60) break; // 23:00 dan oshmasin
+      
+      const endHour = Math.floor(endMinutes / 60);
+      const endMin = endMinutes % 60;
+      const timeStr = `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
+      
+      const duration = minutes < 60 ? `${minutes} daq` : 
+                      minutes === 60 ? `1 soat` :
+                      `${Math.floor(minutes / 60)} soat ${minutes % 60 ? (minutes % 60) + ' daq' : ''}`;
+      
+      options.push({ time: timeStr, duration, minutes });
+    }
+    
+    return options;
+  };
+
+  const handleTimeClick = (timeStr: string) => {
+    setTempStartTime(timeStr);
+    setShowTimeRangeSelector(true);
+    setSelectedTime('');
+    setSelectedEndTime('');
+  };
+
+  const handleTimeRangeSelect = (endTime: string) => {
+    setSelectedTime(tempStartTime);
+    setSelectedEndTime(endTime);
+    setShowTimeRangeSelector(false);
+  };
+
   const handleBooking = () => {
-    if (selectedDate && selectedTime && clientName && clientPhone) {
-      alert(`Band qilindi!\nSana: ${selectedDate}\nVaqt: ${selectedTime}\nMijoz: ${clientName}\nTelefon: ${clientPhone}`);
+    if (selectedDate && selectedTime && selectedEndTime && clientName && clientPhone) {
+      alert(`Band qilindi!\nSana: ${selectedDate}\nVaqt: ${selectedTime} - ${selectedEndTime}\nMijoz: ${clientName}\nTelefon: ${clientPhone}`);
       setSelectedDate('');
       setSelectedTime('');
+      setSelectedEndTime('');
+      setShowTimeRangeSelector(false);
+      setTempStartTime('');
       setClientName('');
       setClientPhone('');
     } else {
@@ -414,10 +458,11 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                   <p className="text-sm text-gray-600 mb-4">To'yxona ish vaqti: 08:00 - 23:00</p>
 
                   {/* Mavjud vaqtlar */}
-                  {selectedDate && (
+                  {selectedDate && !showTimeRangeSelector && (
                     <div className="mb-6">
                       <div className="bg-white border-2 border-red-400 rounded-lg p-4">
                         <h5 className="font-bold text-gray-900 mb-4 text-center">Mavjud vaqtlar:</h5>
+                        <p className="text-sm text-gray-600 mb-4 text-center">Boshlanish vaqtini tanlang</p>
                         <div className="grid grid-cols-4 gap-3">
                           {Array.from({ length: 16 }, (_, i) => {
                             const hour = i + 8;
@@ -426,24 +471,21 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             const isBooked = dayData?.timeSlots.some(slot => 
                               slot.time === timeStr && slot.booked
                             );
-                            const isSelected = selectedTime === timeStr;
                             
                             return (
                               <button
                                 key={hour}
                                 onClick={() => {
                                   if (!isBooked) {
-                                    setSelectedTime(timeStr);
+                                    handleTimeClick(timeStr);
                                   }
                                 }}
                                 disabled={isBooked}
                                 className={`
                                   px-3 py-2 rounded-lg text-sm font-medium transition-all border-2
-                                  ${isSelected 
-                                    ? 'bg-blue-500 text-white border-blue-600' 
-                                    : isBooked 
-                                      ? 'bg-red-100 text-red-600 border-red-300 cursor-not-allowed' 
-                                      : 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 cursor-pointer'
+                                  ${isBooked 
+                                    ? 'bg-red-100 text-red-600 border-red-300 cursor-not-allowed' 
+                                    : 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 cursor-pointer'
                                   }
                                 `}
                               >
@@ -466,18 +508,84 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     </div>
                   )}
 
+                  {/* Vaqt oralig'ini tanlash */}
+                  {showTimeRangeSelector && (
+                    <div className="mb-6">
+                      <div className="bg-white border-2 border-blue-400 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <h5 className="font-bold text-gray-900">
+                            Boshlanish: {tempStartTime}
+                          </h5>
+                          <button
+                            onClick={() => {
+                              setShowTimeRangeSelector(false);
+                              setTempStartTime('');
+                            }}
+                            className="text-gray-500 hover:text-gray-700"
+                          >
+                            ✕ Bekor qilish
+                          </button>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-4 text-center">
+                          Tugash vaqtini tanlang (davomiylik):
+                        </p>
+                        <div className="grid grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                          {generateEndTimeOptions(tempStartTime).map(option => (
+                            <button
+                              key={option.time}
+                              onClick={() => handleTimeRangeSelect(option.time)}
+                              className="px-3 py-2 rounded-lg text-sm font-medium transition-all border-2 
+                                        bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100 cursor-pointer
+                                        text-left"
+                            >
+                              <div className="font-semibold">{option.time}</div>
+                              <div className="text-xs text-blue-600">({option.duration})</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="flex justify-between items-center mb-3">
                       <span className="text-gray-600 font-medium">Tanlangan vaqt:</span>
                       <span className="font-bold text-xl text-blue-600">
-                        {selectedTime || 'Vaqt tanlanmagan'}
+                        {selectedTime && selectedEndTime 
+                          ? `${selectedTime} - ${selectedEndTime}` 
+                          : 'Vaqt tanlanmagan'}
                       </span>
                     </div>
+                    {selectedTime && selectedEndTime && (
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-gray-600 font-medium">Davomiylik:</span>
+                        <span className="font-medium text-gray-900">
+                          {(() => {
+                            const [startHour, startMin] = selectedTime.split(':').map(Number);
+                            const [endHour, endMin] = selectedEndTime.split(':').map(Number);
+                            const totalMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+                            const hours = Math.floor(totalMinutes / 60);
+                            const minutes = totalMinutes % 60;
+                            return hours > 0 && minutes > 0 
+                              ? `${hours} soat ${minutes} daqiqa`
+                              : hours > 0 
+                                ? `${hours} soat`
+                                : `${minutes} daqiqa`;
+                          })()}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 font-medium">Narx:</span>
                       <span className="font-bold text-lg text-green-600">
-                        {selectedTime && parseInt(selectedTime.split(':')[0]) >= 18 ? '$2,000' :
-                         selectedTime && parseInt(selectedTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
+                        {selectedTime && selectedEndTime ? (() => {
+                          const [startHour] = selectedTime.split(':').map(Number);
+                          const [endHour, endMin] = selectedEndTime.split(':').map(Number);
+                          const totalMinutes = (endHour * 60 + endMin) - (startHour * 60);
+                          const hours = Math.ceil(totalMinutes / 60);
+                          const hourlyRate = startHour >= 18 ? 400 : startHour >= 10 ? 300 : 200;
+                          return `$${hours * hourlyRate}`;
+                        })() : '$0'}
                       </span>
                     </div>
                   </div>
@@ -494,14 +602,43 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Vaqt:</span>
-                        <span className="font-medium">{selectedTime || 'Tanlanmagan'}</span>
+                        <span className="font-medium">
+                          {selectedTime && selectedEndTime 
+                            ? `${selectedTime} - ${selectedEndTime}` 
+                            : 'Tanlanmagan'}
+                        </span>
                       </div>
+                      {selectedTime && selectedEndTime && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Davomiylik:</span>
+                          <span className="font-medium">
+                            {(() => {
+                              const [startHour, startMin] = selectedTime.split(':').map(Number);
+                              const [endHour, endMin] = selectedEndTime.split(':').map(Number);
+                              const totalMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+                              const hours = Math.floor(totalMinutes / 60);
+                              const minutes = totalMinutes % 60;
+                              return hours > 0 && minutes > 0 
+                                ? `${hours} soat ${minutes} daqiqa`
+                                : hours > 0 
+                                  ? `${hours} soat`
+                                  : `${minutes} daqiqa`;
+                            })()}
+                          </span>
+                        </div>
+                      )}
                       <hr className="my-2" />
                       <div className="flex justify-between items-center">
                         <span className="text-gray-900 font-semibold">Jami narx:</span>
                         <span className="font-bold text-xl text-green-600">
-                          {selectedTime && parseInt(selectedTime.split(':')[0]) >= 18 ? '$2,000' :
-                           selectedTime && parseInt(selectedTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
+                          {selectedTime && selectedEndTime ? (() => {
+                            const [startHour] = selectedTime.split(':').map(Number);
+                            const [endHour, endMin] = selectedEndTime.split(':').map(Number);
+                            const totalMinutes = (endHour * 60 + endMin) - (startHour * 60);
+                            const hours = Math.ceil(totalMinutes / 60);
+                            const hourlyRate = startHour >= 18 ? 400 : startHour >= 10 ? 300 : 200;
+                            return `$${hours * hourlyRate}`;
+                          })() : '$0'}
                         </span>
                       </div>
                     </div>
@@ -554,9 +691,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                 <div className="bg-white rounded-lg p-6 border shadow-sm">
                   <button
                     onClick={handleBooking}
-                    disabled={!selectedDate || !clientName.trim() || !clientPhone.trim() || !selectedTime}
+                    disabled={!selectedDate || !clientName.trim() || !clientPhone.trim() || !selectedTime || !selectedEndTime}
                     className={`w-full flex items-center justify-center space-x-3 px-6 py-4 rounded-lg transition-all font-bold text-lg shadow-lg ${
-                      selectedDate && clientName.trim() && clientPhone.trim() && selectedTime
+                      selectedDate && clientName.trim() && clientPhone.trim() && selectedTime && selectedEndTime
                         ? 'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700 transform hover:scale-105'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
@@ -564,6 +701,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     <Check className="w-6 h-6" />
                     <span>
                       {!selectedDate ? 'Avval sana tanlang' :
+                       !selectedTime || !selectedEndTime ? 'Vaqt oralig\'ini tanlang' :
                        !clientName.trim() || !clientPhone.trim() ? 'Ma\'lumotlarni to\'ldiring' :
                        'Band Qilish'}
                     </span>
