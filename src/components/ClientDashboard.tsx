@@ -692,13 +692,38 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         Mehmonlar Soni
                       </label>
                       <input
-                        type="number"
-                        min="10"
-                        max="1000"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         value={guestCount}
-                        onChange={(e) => setGuestCount(Number(e.target.value))}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Faqat raqamlarni qabul qilish va bo'sh stringni oldini olish
+                          if (value === '' || /^\d+$/.test(value)) {
+                            const numValue = value === '' ? 10 : Number(value);
+                            // Minimum 10, maksimum 1000
+                            if (numValue >= 10 && numValue <= 1000) {
+                              setGuestCount(numValue);
+                            } else if (numValue < 10 && value !== '') {
+                              setGuestCount(10);
+                            } else if (numValue > 1000) {
+                              setGuestCount(1000);
+                            }
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          // Faqat raqamlar va maxsus tugmalarni ruxsat berish
+                          const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'];
+                          if (!/^\d$/.test(e.key) && !allowedKeys.includes(e.key)) {
+                            e.preventDefault();
+                          }
+                        }}
+                        placeholder="50"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      <p className="mt-1 text-xs text-gray-500">
+                        Minimum 10, maksimum 1000 kishi
+                      </p>
                     </div>
 
                     <div className="space-y-3">
