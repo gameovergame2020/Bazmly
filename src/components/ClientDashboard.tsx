@@ -329,8 +329,11 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   };
 
   const handleBooking = () => {
-    if (selectedDate && selectedTime && selectedEndTime && clientName && clientPhone) {
-      alert(`Band qilindi!\nSana: ${selectedDate}\nVaqt: ${selectedTime} - ${selectedEndTime}\nMijoz: ${clientName}\nTelefon: ${clientPhone}`);
+    // Telefon raqam validatsiyasi - kamida 9 ta raqam bo'lishi kerak
+    const phoneNumbers = clientPhone.replace(/\s/g, '');
+    if (selectedDate && selectedTime && selectedEndTime && clientName.trim() && phoneNumbers.length >= 9) {
+      const formattedPhone = `+998 ${clientPhone}`;
+      alert(`Band qilindi!\nSana: ${selectedDate}\nVaqt: ${selectedTime} - ${selectedEndTime}\nMijoz: ${clientName}\nTelefon: ${formattedPhone}`);
       setSelectedDate('');
       setSelectedTime('');
       setSelectedEndTime('');
@@ -338,8 +341,17 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
       setTempStartTime('');
       setClientName('');
       setClientPhone('');
+      setShowBookingModal(false);
     } else {
-      alert('Iltimos barcha ma\'lumotlarni to\'ldiring!');
+      if (!selectedDate) {
+        alert('Iltimos sana tanlang!');
+      } else if (!selectedTime || !selectedEndTime) {
+        alert('Iltimos vaqt oralig\'ini tanlang!');
+      } else if (!clientName.trim()) {
+        alert('Iltimos ism familiyangizni kiriting!');
+      } else if (phoneNumbers.length < 9) {
+        alert('Iltimos to\'liq telefon raqamini kiriting! (9 ta raqam)');
+      }
     }
   };
 
@@ -772,26 +784,36 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                         Telefon Raqam *
                       </label>
-                      <input
-                        type="tel"
-                        value={clientPhone.startsWith('+998 ') ? clientPhone : `+998 ${clientPhone}`}
-                        onChange={(e) => {
-                          let value = e.target.value;
-                          if (value.startsWith('+998 ')) {
-                            value = value.slice(5);
-                          }
-                          setClientPhone(value);
-                        }}
-                        onFocus={(e) => {
-                          if (!clientPhone) {
-                            setClientPhone('');
-                            e.target.value = '+998 ';
-                          }
-                        }}
-                        placeholder="+998 90 123 45 67"
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                        required
-                      />
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
+                          <span className="text-gray-500 text-sm sm:text-base">+998</span>
+                        </div>
+                        <input
+                          type="tel"
+                          value={clientPhone}
+                          onChange={(e) => {
+                            // Faqat raqamlar va bo'shliqlarni qabul qilish
+                            const value = e.target.value.replace(/[^\d\s]/g, '');
+                            // Maksimum 9 ta raqam (90 123 45 67 formatida)
+                            if (value.replace(/\s/g, '').length <= 9) {
+                              setClientPhone(value);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            // Faqat raqamlar, backspace, delete, arrow keys, space va tabni ruxsat berish
+                            const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', ' '];
+                            if (!/^\d$/.test(e.key) && !allowedKeys.includes(e.key)) {
+                              e.preventDefault();
+                            }
+                          }}
+                          placeholder="90 123 45 67"
+                          className="w-full pl-12 sm:pl-16 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                          required
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Format: 90 123 45 67
+                      </p>
                     </div>
 
                     
@@ -802,9 +824,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                 <div className="bg-white rounded-lg p-3 sm:p-6 border shadow-sm">
                   <button
                     onClick={handleBooking}
-                    disabled={!selectedDate || !clientName.trim() || !clientPhone.trim() || !selectedTime || !selectedEndTime}
+                    disabled={!selectedDate || !clientName.trim() || clientPhone.replace(/\s/g, '').length < 9 || !selectedTime || !selectedEndTime}
                     className={`w-full flex items-center justify-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-3 sm:py-4 rounded-lg transition-all font-bold text-sm sm:text-lg shadow-lg ${
-                      selectedDate && clientName.trim() && clientPhone.trim() && selectedTime && selectedEndTime
+                      selectedDate && clientName.trim() && clientPhone.replace(/\s/g, '').length >= 9 && selectedTime && selectedEndTime
                         ? 'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700 transform hover:scale-105'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
@@ -813,7 +835,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     <span className="text-center leading-tight">
                       {!selectedDate ? 'Avval sana tanlang' :
                        !selectedTime || !selectedEndTime ? 'Vaqt oralig\'ini tanlang' :
-                       !clientName.trim() || !clientPhone.trim() ? 'Ma\'lumotlarni to\'ldiring' :
+                       !clientName.trim() ? 'Ism familiyani kiriting' :
+                       clientPhone.replace(/\s/g, '').length < 9 ? 'To\'liq telefon raqam kiriting' :
                        'Band Qilish'}
                     </span>
                   </button>
