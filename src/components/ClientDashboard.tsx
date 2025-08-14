@@ -417,6 +417,60 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
                   <p className="text-sm text-gray-600 mb-4">To'yxona ish vaqti: 08:00 - 23:00</p>
 
+                  {/* Mavjud vaqtlar - Available Time Slots */}
+                  {selectedDate && (
+                    <div className="mb-6">
+                      <div className="bg-white border-2 border-red-400 rounded-lg p-4">
+                        <h5 className="font-bold text-gray-900 mb-4 text-center">Mavjud vaqtlar:</h5>
+                        <div className="grid grid-cols-4 gap-3">
+                          {Array.from({ length: 16 }, (_, i) => {
+                            const hour = i + 8;
+                            const timeStr = `${hour.toString().padStart(2, '0')}:00`;
+                            const dayData = getSelectedDayAvailability();
+                            const isBooked = dayData?.timeSlots.some(slot => 
+                              slot.time === timeStr && slot.booked
+                            );
+                            const isSelected = customTime === timeStr;
+                            
+                            return (
+                              <button
+                                key={hour}
+                                onClick={() => {
+                                  if (!isBooked) {
+                                    setCustomTime(timeStr);
+                                    setSelectedTime(timeStr);
+                                  }
+                                }}
+                                disabled={isBooked}
+                                className={`
+                                  px-3 py-2 rounded-lg text-sm font-medium transition-all border-2
+                                  ${isSelected 
+                                    ? 'bg-blue-500 text-white border-blue-600' 
+                                    : isBooked 
+                                      ? 'bg-red-100 text-red-600 border-red-300 cursor-not-allowed' 
+                                      : 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 cursor-pointer'
+                                  }
+                                `}
+                              >
+                                {timeStr}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="flex items-center justify-center space-x-6 mt-4 text-sm">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                            <span className="text-gray-700">Mavjud</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                            <span className="text-gray-700">Band qilingan</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Custom Time Picker */}
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-4 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border">
