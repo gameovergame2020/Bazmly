@@ -34,20 +34,28 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
       date: '2025-01-18',
       available: true,
       timeSlots: [
+        { time: '08:00', available: true },
         { time: '10:00', available: true },
+        { time: '12:00', available: false },
         { time: '14:00', available: false },
+        { time: '16:00', available: true },
         { time: '18:00', available: true },
-        { time: '20:00', available: true }
+        { time: '20:00', available: true },
+        { time: '22:00', available: true }
       ]
     },
     {
       date: '2025-01-19',
       available: true,
       timeSlots: [
+        { time: '08:00', available: false },
         { time: '10:00', available: true },
+        { time: '12:00', available: true },
         { time: '14:00', available: true },
+        { time: '16:00', available: false },
         { time: '18:00', available: false },
-        { time: '20:00', available: true }
+        { time: '20:00', available: true },
+        { time: '22:00', available: true }
       ]
     },
     {
@@ -59,20 +67,28 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
       date: '2025-01-21',
       available: true,
       timeSlots: [
+        { time: '08:00', available: true },
         { time: '10:00', available: true },
+        { time: '12:00', available: false },
         { time: '14:00', available: true },
+        { time: '16:00', available: true },
         { time: '18:00', available: true },
-        { time: '20:00', available: false }
+        { time: '20:00', available: false },
+        { time: '22:00', available: true }
       ]
     },
     {
       date: '2025-01-22',
       available: true,
       timeSlots: [
+        { time: '08:00', available: true },
         { time: '10:00', available: true },
+        { time: '12:00', available: true },
         { time: '14:00', available: true },
+        { time: '16:00', available: false },
         { time: '18:00', available: true },
-        { time: '20:00', available: true }
+        { time: '20:00', available: true },
+        { time: '22:00', available: false }
       ]
     },
     {
@@ -84,30 +100,42 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
       date: '2025-01-24',
       available: true,
       timeSlots: [
+        { time: '08:00', available: false },
         { time: '10:00', available: false },
+        { time: '12:00', available: true },
         { time: '14:00', available: true },
+        { time: '16:00', available: true },
         { time: '18:00', available: true },
-        { time: '20:00', available: true }
+        { time: '20:00', available: true },
+        { time: '22:00', available: false }
       ]
     },
     {
       date: '2025-01-25',
       available: true,
       timeSlots: [
+        { time: '08:00', available: true },
         { time: '10:00', available: true },
+        { time: '12:00', available: false },
         { time: '14:00', available: true },
+        { time: '16:00', available: true },
         { time: '18:00', available: false },
-        { time: '20:00', available: true }
+        { time: '20:00', available: true },
+        { time: '22:00', available: true }
       ]
     },
     {
       date: '2025-01-26',
       available: true,
       timeSlots: [
+        { time: '08:00', available: true },
         { time: '10:00', available: true },
+        { time: '12:00', available: true },
         { time: '14:00', available: false },
+        { time: '16:00', available: false },
         { time: '18:00', available: true },
-        { time: '20:00', available: true }
+        { time: '20:00', available: true },
+        { time: '22:00', available: true }
       ]
     },
     {
@@ -119,30 +147,42 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
       date: '2025-01-28',
       available: true,
       timeSlots: [
+        { time: '08:00', available: false },
         { time: '10:00', available: true },
+        { time: '12:00', available: true },
         { time: '14:00', available: true },
+        { time: '16:00', available: true },
         { time: '18:00', available: true },
-        { time: '20:00', available: false }
+        { time: '20:00', available: false },
+        { time: '22:00', available: true }
       ]
     },
     {
       date: '2025-01-29',
       available: true,
       timeSlots: [
+        { time: '08:00', available: true },
         { time: '10:00', available: false },
+        { time: '12:00', available: false },
         { time: '14:00', available: false },
+        { time: '16:00', available: true },
         { time: '18:00', available: true },
-        { time: '20:00', available: true }
+        { time: '20:00', available: true },
+        { time: '22:00', available: false }
       ]
     },
     {
       date: '2025-01-30',
       available: true,
       timeSlots: [
+        { time: '08:00', available: true },
         { time: '10:00', available: true },
+        { time: '12:00', available: true },
         { time: '14:00', available: true },
+        { time: '16:00', available: false },
         { time: '18:00', available: true },
-        { time: '20:00', available: true }
+        { time: '20:00', available: true },
+        { time: '22:00', available: true }
       ]
     },
     {
@@ -157,10 +197,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     if (!available) return [];
 
     const allSlots = [
+      { time: '08:00', available: true },
       { time: '10:00', available: true },
+      { time: '12:00', available: true },
       { time: '14:00', available: true },
+      { time: '16:00', available: true },
       { time: '18:00', available: true },
-      { time: '20:00', available: true }
+      { time: '20:00', available: true },
+      { time: '22:00', available: true }
     ];
 
     return allSlots;
@@ -246,10 +290,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
       // Doimiy vaqt slotlari yaratish
       const timeSlots = isAvailable ? [
-        { time: '10:00', available: dayOfMonth % 4 !== 1 },
-        { time: '14:00', available: dayOfMonth % 4 !== 2 },
-        { time: '18:00', available: dayOfMonth % 4 !== 3 },
-        { time: '20:00', available: dayOfMonth % 4 !== 0 }
+        { time: '08:00', available: dayOfMonth % 8 !== 1 },
+        { time: '10:00', available: dayOfMonth % 8 !== 2 },
+        { time: '12:00', available: dayOfMonth % 8 !== 3 },
+        { time: '14:00', available: dayOfMonth % 8 !== 4 },
+        { time: '16:00', available: dayOfMonth % 8 !== 5 },
+        { time: '18:00', available: dayOfMonth % 8 !== 6 },
+        { time: '20:00', available: dayOfMonth % 8 !== 7 },
+        { time: '22:00', available: dayOfMonth % 8 !== 0 }
       ] : [];
 
       dayData = {
@@ -460,7 +508,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     <Clock className="w-5 h-5 mr-2 text-green-600" />
                     Tayyor vaqtlar
                   </h5>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3">
                     {getSelectedDayAvailability()?.timeSlots.map((slot, index) => (
                       <button
                         key={index}
