@@ -654,16 +654,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Qo'shimcha Ma'lumot
-                      </label>
-                      <textarea
-                        placeholder="Maxsus talablar yoki qo'shimcha ma'lumotlar..."
-                        rows={3}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
+                    
                   </div>
                 </div>
 
@@ -701,38 +692,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
               </div>
             </div>
 
-            {/* Band Qilingan Vaqtlar Display */}
-            {selectedDate && (
-              <div className="mt-8 bg-white rounded-lg p-6 border shadow-sm">
-                <h4 className="font-bold text-gray-900 mb-4 flex items-center">
-                  <X className="w-5 h-5 mr-2 text-red-500" />
-                  {new Date(selectedDate).toLocaleDateString('uz-UZ')} - Band Qilingan Vaqtlar
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {getSelectedDayAvailability()?.timeSlots
-                    .filter(slot => !slot.available && slot.booked)
-                    .map((slot, index) => (
-                      <div
-                        key={index}
-                        className="bg-red-50 border-2 border-red-200 rounded-lg p-4 text-center cursor-not-allowed opacity-60"
-                      >
-                        <div className="text-lg font-bold text-red-700 mb-1">
-                          {slot.time}
-                        </div>
-                        <div className="text-xs text-red-600 font-medium">
-                          Band qilingan
-                        </div>
-                      </div>
-                    ))}
-                  {getSelectedDayAvailability()?.timeSlots
-                    .filter(slot => !slot.available && slot.booked).length === 0 && (
-                    <div className="col-span-full text-center text-gray-500 py-4">
-                      Bu kun uchun band qilingan vaqtlar yo'q
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            
           </div>
         </div>
       </div>
