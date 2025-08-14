@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, Check, X, Users, DollarSign, Star } from 'lucide-react';
+import { Calendar, Clock, Check, X, Users, DollarSign, Star, ChefHat, Utensils, Calculator } from 'lucide-react';
 import { User } from '../App';
 
 interface ClientDashboardProps {
@@ -31,6 +31,10 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   const [clientName, setClientName] = useState<string>('');
   const [clientPhone, setClientPhone] = useState<string>('');
   const [showBookingModal, setShowBookingModal] = useState<boolean>(false);
+  const [showPricingModal, setShowPricingModal] = useState<boolean>(false);
+  const [selectedMenuItems, setSelectedMenuItems] = useState<any[]>([]);
+  const [guestCount, setGuestCount] = useState<number>(50);
+  const [selectedPricing, setSelectedPricing] = useState<any>(null);
 
   // Demo ma'lumotlar - real holatda server'dan keladi
   const availability: DayAvailability[] = [
@@ -153,6 +157,102 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
       date: '2025-01-31',
       available: false,
       timeSlots: []
+    }
+  ];
+
+  // Narxlar va ovqatlar ma'lumotlari
+  const pricingPackages = [
+    {
+      id: 'basic',
+      name: 'Asosiy To\'y Paketi',
+      price: 25,
+      pricePerPerson: true,
+      description: 'Oddiy to\'y uchun minimal paket',
+      includes: [
+        'Stol va stullar (10 kishi uchun 1 stol)',
+        'Oddiy bezatish',
+        'Asosiy ovqatlar (3 ta)',
+        'Non va salat',
+        'Choy va sharbat'
+      ],
+      color: 'bg-blue-50 border-blue-200'
+    },
+    {
+      id: 'premium',
+      name: 'Premium To\'y Paketi',
+      price: 45,
+      pricePerPerson: true,
+      description: 'Keng imkoniyatli to\'y paketi',
+      includes: [
+        'Bezatilgan stol va stullar',
+        'Professional bezatish',
+        'Maxsus ovqatlar (6 ta)',
+        'Meva va shirinliklar',
+        'Milliy ichimliklar',
+        'Gul bezaklari'
+      ],
+      color: 'bg-purple-50 border-purple-200'
+    },
+    {
+      id: 'luxury',
+      name: 'Hashamatli To\'y Paketi',
+      price: 75,
+      pricePerPerson: true,
+      description: 'Eng yuqori darajadagi xizmat',
+      includes: [
+        'VIP stol va stullar',
+        'Hashamatli bezatish',
+        'Maxsus chef ovqatlari (10+ ta)',
+        'Premium ichimliklar',
+        'Professional fotograf',
+        'Jonli musiqa',
+        'Maxsus xizmat'
+      ],
+      color: 'bg-yellow-50 border-yellow-200'
+    }
+  ];
+
+  const menuCategories = [
+    {
+      id: 'main',
+      name: 'Asosiy Ovqatlar',
+      items: [
+        { id: 1, name: 'Osh (1 kishi uchun)', price: 8, description: 'An\'anaviy o\'zbek oshi' },
+        { id: 2, name: 'Manti (8 dona)', price: 6, description: 'Bug\'da pishirilgan manti' },
+        { id: 3, name: 'Shashlik (1 porsiya)', price: 12, description: 'Qo\'zichoq go\'shti shashlik' },
+        { id: 4, name: 'Lag\'mon', price: 7, description: 'Qo\'l tortma lag\'mon' },
+        { id: 5, name: 'Somsa (1 dona)', price: 2, description: 'Tandir somsasi' }
+      ]
+    },
+    {
+      id: 'salads',
+      name: 'Salatlar',
+      items: [
+        { id: 6, name: 'Achiq-chuchuk', price: 5, description: 'Pomidor va piyoz salati' },
+        { id: 7, name: 'Olivye', price: 6, description: 'Klassik olivye salati' },
+        { id: 8, name: 'Grek salati', price: 8, description: 'Yunon salati' },
+        { id: 9, name: 'Sabzavot salati', price: 4, description: 'Mavsumiy sabzavotlar' }
+      ]
+    },
+    {
+      id: 'drinks',
+      name: 'Ichimliklar',
+      items: [
+        { id: 10, name: 'Choy (1 piyola)', price: 1, description: 'Ko\'k va qora choy' },
+        { id: 11, name: 'Sharbat (1 stakan)', price: 2, description: 'Tabiiy mevali sharbat' },
+        { id: 12, name: 'Kola (0.5L)', price: 3, description: 'Gazlangan ichimlik' },
+        { id: 13, name: 'Milliy ichimlik', price: 4, description: 'Maxsus tayyorlangan' }
+      ]
+    },
+    {
+      id: 'desserts',
+      name: 'Shirinliklar',
+      items: [
+        { id: 14, name: 'To\'y torti (1 bo\'lak)', price: 8, description: 'Maxsus to\'y torti' },
+        { id: 15, name: 'Halva', price: 3, description: 'An\'anaviy halva' },
+        { id: 16, name: 'Meva tarelkasi', price: 10, description: 'Mavsumiy mevalar' },
+        { id: 17, name: 'Paxlava', price: 5, description: 'Yong\'oqli paxlava' }
+      ]
     }
   ];
 
@@ -355,6 +455,35 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     }
   };
 
+  const handleMenuItemToggle = (item: any) => {
+    setSelectedMenuItems(prev => {
+      const exists = prev.find(selected => selected.id === item.id);
+      if (exists) {
+        return prev.filter(selected => selected.id !== item.id);
+      } else {
+        return [...prev, { ...item, quantity: 1 }];
+      }
+    });
+  };
+
+  const updateMenuItemQuantity = (itemId: number, quantity: number) => {
+    if (quantity <= 0) {
+      setSelectedMenuItems(prev => prev.filter(item => item.id !== itemId));
+    } else {
+      setSelectedMenuItems(prev => 
+        prev.map(item => 
+          item.id === itemId ? { ...item, quantity } : item
+        )
+      );
+    }
+  };
+
+  const calculateTotal = () => {
+    const menuTotal = selectedMenuItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const packageTotal = selectedPricing ? selectedPricing.price * guestCount : 0;
+    return menuTotal + packageTotal;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -487,7 +616,263 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
           </div>
         </div>
 
-        
+        {/* Pricing and Menu Section */}
+        <div className="mt-6 sm:mt-8 bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-3 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-blue-50">
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+              <ChefHat className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
+              <div className="flex-1">
+                <h2 className="text-lg sm:text-2xl font-bold text-gray-900">Narxlar va Ovqatlar</h2>
+                <p className="text-sm sm:text-base text-gray-600">To'y paketi va ovqatlarni tanlang</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-3 sm:p-6">
+            <div className="text-center">
+              <button
+                onClick={() => setShowPricingModal(true)}
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all font-bold text-base sm:text-lg shadow-lg transform hover:scale-105 flex items-center justify-center space-x-2 sm:space-x-3"
+              >
+                <Calculator className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span>Narxlarni Ko'rish va Hisoblash</span>
+              </button>
+              
+              <div className="mt-4 sm:mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 text-center">
+                <div className="bg-blue-50 rounded-lg p-3 sm:p-4">
+                  <div className="text-xl sm:text-2xl font-bold text-blue-600">3</div>
+                  <div className="text-xs sm:text-sm text-gray-600">To'y Paketi</div>
+                </div>
+                <div className="bg-green-50 rounded-lg p-3 sm:p-4">
+                  <div className="text-xl sm:text-2xl font-bold text-green-600">17</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Ovqat Turi</div>
+                </div>
+                <div className="bg-purple-50 rounded-lg p-3 sm:p-4">
+                  <div className="text-xl sm:text-2xl font-bold text-purple-600">$25+</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Minimal Narx</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pricing and Menu Modal */}
+        {showPricingModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white w-full h-full sm:h-auto sm:max-w-7xl sm:rounded-xl shadow-2xl sm:max-h-[95vh] overflow-y-auto">
+              {/* Modal Header */}
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between sticky top-0 z-10">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg sm:text-2xl font-bold text-gray-900 flex items-center">
+                    <ChefHat className="w-5 h-5 sm:w-7 sm:h-7 mr-2 sm:mr-3 text-green-600 flex-shrink-0" />
+                    <span className="truncate">Narxlar va Ovqatlar</span>
+                  </h3>
+                  <p className="text-gray-600 mt-1 text-sm sm:text-base hidden sm:block">To'y paketini tanlang va ovqatlarni hisoblang</p>
+                </div>
+                <button
+                  onClick={() => setShowPricingModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-xl sm:text-2xl p-1 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 ml-2"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-4 sm:p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                  {/* Left side - Packages */}
+                  <div className="space-y-4">
+                    <h4 className="font-bold text-gray-900 text-base sm:text-lg flex items-center">
+                      <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-600" />
+                      To'y Paketlari
+                    </h4>
+
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Mehmonlar Soni
+                      </label>
+                      <input
+                        type="number"
+                        min="10"
+                        max="1000"
+                        value={guestCount}
+                        onChange={(e) => setGuestCount(Number(e.target.value))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      {pricingPackages.map(pkg => (
+                        <div
+                          key={pkg.id}
+                          onClick={() => setSelectedPricing(pkg)}
+                          className={`p-3 sm:p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                            selectedPricing?.id === pkg.id 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : pkg.color + ' hover:border-blue-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-bold text-gray-900 text-sm sm:text-base">{pkg.name}</h5>
+                            <div className="text-right">
+                              <div className="font-bold text-lg text-blue-600">${pkg.price}</div>
+                              <div className="text-xs text-gray-600">per person</div>
+                            </div>
+                          </div>
+                          <p className="text-xs sm:text-sm text-gray-600 mb-2">{pkg.description}</p>
+                          <div className="space-y-1">
+                            {pkg.includes.slice(0, 3).map((item, idx) => (
+                              <div key={idx} className="flex items-center text-xs text-gray-700">
+                                <Check className="w-3 h-3 text-green-500 mr-1 flex-shrink-0" />
+                                <span>{item}</span>
+                              </div>
+                            ))}
+                            {pkg.includes.length > 3 && (
+                              <div className="text-xs text-gray-500">
+                                +{pkg.includes.length - 3} ko'proq
+                              </div>
+                            )}
+                          </div>
+                          {selectedPricing?.id === pkg.id && (
+                            <div className="mt-2 pt-2 border-t border-gray-200">
+                              <div className="font-bold text-green-600">
+                                Jami: ${pkg.price * guestCount}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Middle - Menu */}
+                  <div className="space-y-4">
+                    <h4 className="font-bold text-gray-900 text-base sm:text-lg flex items-center">
+                      <Utensils className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-600" />
+                      Qo'shimcha Ovqatlar
+                    </h4>
+
+                    <div className="space-y-3">
+                      {menuCategories.map(category => (
+                        <div key={category.id} className="bg-gray-50 rounded-lg p-3">
+                          <h5 className="font-medium text-gray-900 mb-2 text-sm">{category.name}</h5>
+                          <div className="space-y-2">
+                            {category.items.map(item => {
+                              const selected = selectedMenuItems.find(selected => selected.id === item.id);
+                              return (
+                                <div key={item.id} className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <div className="text-xs font-medium text-gray-900">{item.name}</div>
+                                    <div className="text-xs text-gray-600">${item.price}</div>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    {selected ? (
+                                      <>
+                                        <button
+                                          onClick={() => updateMenuItemQuantity(item.id, selected.quantity - 1)}
+                                          className="w-6 h-6 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+                                        >
+                                          -
+                                        </button>
+                                        <span className="w-8 text-center text-xs">{selected.quantity}</span>
+                                        <button
+                                          onClick={() => updateMenuItemQuantity(item.id, selected.quantity + 1)}
+                                          className="w-6 h-6 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+                                        >
+                                          +
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <button
+                                        onClick={() => handleMenuItemToggle(item)}
+                                        className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+                                      >
+                                        Qo'shish
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Right - Summary */}
+                  <div className="space-y-4">
+                    <h4 className="font-bold text-gray-900 text-base sm:text-lg flex items-center">
+                      <Calculator className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-600" />
+                      Hisob-Kitob
+                    </h4>
+
+                    <div className="bg-white border rounded-lg p-4 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Mehmonlar:</span>
+                        <span className="font-medium">{guestCount} kishi</span>
+                      </div>
+
+                      {selectedPricing && (
+                        <div className="border-t pt-3">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm font-medium">{selectedPricing.name}</span>
+                            <span className="font-bold text-blue-600">
+                              ${selectedPricing.price * guestCount}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            ${selectedPricing.price} × {guestCount} kishi
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedMenuItems.length > 0 && (
+                        <div className="border-t pt-3">
+                          <div className="text-sm font-medium mb-2">Qo'shimcha Ovqatlar:</div>
+                          {selectedMenuItems.map(item => (
+                            <div key={item.id} className="flex justify-between items-center text-xs mb-1">
+                              <span>{item.name} × {item.quantity}</span>
+                              <span>${item.price * item.quantity}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="border-t pt-3">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold text-lg">Jami:</span>
+                          <span className="font-bold text-xl text-green-600">
+                            ${calculateTotal()}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          alert(`Hisob-kitob:\nMehmonlar: ${guestCount}\nJami summa: $${calculateTotal()}`);
+                        }}
+                        className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                      >
+                        Hisob-kitobni Saqlash
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex justify-end space-x-2 sm:space-x-3 sticky bottom-0 sm:static">
+                <button
+                  onClick={() => setShowPricingModal(false)}
+                  className="px-4 sm:px-6 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base"
+                >
+                  Yopish
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Booking Form Modal */}
         {showBookingModal && (
