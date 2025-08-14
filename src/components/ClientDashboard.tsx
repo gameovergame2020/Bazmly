@@ -417,140 +417,38 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
                   <p className="text-sm text-gray-600 mb-4">To'yxona ish vaqti: 08:00 - 23:00</p>
 
-                  {/* Custom Time Picker */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-4 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        <Clock className="w-5 h-5 text-blue-600" />
-                        <span className="font-semibold text-gray-800">Vaqt tanlash</span>
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        08:00 - 23:00 oralig'ida
-                      </div>
-                    </div>
+                  <input
+                    type="time"
+                    min="08:00"
+                    max="23:00"
+                    step="1800"
+                    value={customTime}
+                    onChange={(e) => {
+                      const selectedTimeValue = e.target.value;
+                      const dayData = selectedDate ? getSelectedDayAvailability() : null;
+                      const isTimeBooked = dayData?.timeSlots.some(
+                        slot => slot.time === selectedTimeValue && slot.booked
+                      );
 
-                    {/* Custom Time Input */}
-                    <div className="relative">
-                      <div className="flex border border-gray-300 rounded-lg overflow-hidden bg-white">
-                        {/* Hours */}
-                        <select
-                          value={customTime.split(':')[0]}
-                          onChange={(e) => {
-                            const hours = e.target.value.padStart(2, '0');
-                            const minutes = customTime.split(':')[1] || '00';
-                            const newTime = `${hours}:${minutes}`;
-                            setCustomTime(newTime);
-                            if (selectedDate) {
-                              setSelectedTime(newTime);
-                            }
-                          }}
-                          className="flex-1 px-4 py-3 text-lg font-medium bg-transparent border-none outline-none focus:ring-0 appearance-none cursor-pointer hour-selector"
-                          style={{ 
-                            backgroundImage: 'none'
-                          }}
-                          size={6}
-                        >
-                          {Array.from({ length: 16 }, (_, i) => {
-                            const hour = i + 8; // 8:00 dan 23:00 gacha
-                            const hourStr = hour.toString().padStart(2, '0');
-                            const dayData = getSelectedDayAvailability();
-                            const isBooked = selectedDate && dayData?.timeSlots.some(slot => 
-                              slot.time === `${hourStr}:00` && slot.booked
-                            );
-                            return (
-                              <option 
-                                key={hour} 
-                                value={hourStr}
-                                className={isBooked ? 'text-red-600 bg-red-50' : 'text-green-600'}
-                                disabled={isBooked}
-                              >
-                                {hourStr} {isBooked ? '(Band)' : '(Mavjud)'}
-                              </option>
-                            );
-                          })}
-                        </select>
-                        
-                        <div className="flex items-center px-2 text-lg font-medium text-gray-600">:</div>
-                        
-                        {/* Minutes */}
-                        <select
-                          value={customTime.split(':')[1] || '00'}
-                          onChange={(e) => {
-                            const hours = customTime.split(':')[0] || '08';
-                            const minutes = e.target.value;
-                            const newTime = `${hours}:${minutes}`;
-                            setCustomTime(newTime);
-                            if (selectedDate) {
-                              setSelectedTime(newTime);
-                            }
-                          }}
-                          className="flex-1 px-4 py-3 text-lg font-medium bg-transparent border-none outline-none focus:ring-0 appearance-none cursor-pointer"
-                          style={{ backgroundImage: 'none' }}
-                          size={1}
-                        >
-                          <option value="00">00</option>
-                          <option value="30">30</option>
-                        </select>
-                      </div>
-                      
-                      {/* CSS to control dropdown height */}
-                      <style jsx>{`
-                        .hour-selector {
-                          height: 180px !important;
-                          overflow-y: scroll !important;
-                          scrollbar-width: thin;
-                          scrollbar-color: #cbd5e1 #f1f5f9;
-                        }
-                        .hour-selector::-webkit-scrollbar {
-                          width: 8px;
-                        }
-                        .hour-selector::-webkit-scrollbar-track {
-                          background: #f1f5f9;
-                          border-radius: 4px;
-                        }
-                        .hour-selector::-webkit-scrollbar-thumb {
-                          background: #cbd5e1;
-                          border-radius: 4px;
-                        }
-                        .hour-selector::-webkit-scrollbar-thumb:hover {
-                          background: #94a3b8;
-                        }
-                        select option {
-                          padding: 8px 12px;
-                        }
-                      `}</style>
-                      
-                      {/* Time indicator */}
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                        <Clock className="w-5 h-5 text-gray-400" />
-                      </div>
-                    </div>
-
-                    
-
-                    {/* Band qilingan vaqtlar haqida ogohlantirish */}
-                    {selectedDate && (() => {
-                      const dayData = getSelectedDayAvailability();
-                      const bookedTimes = dayData?.timeSlots.filter(slot => slot.booked).map(slot => slot.time) || [];
-                      if (bookedTimes.length > 0) {
-                        return (
-                          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                            <p className="text-red-700 font-medium mb-2">
-                              Band qilingan vaqtlar:
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {bookedTimes.map((time, index) => (
-                                <span key={index} className="bg-red-200 text-red-800 px-2 py-1 rounded text-sm">
-                                  {time}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        );
+                      if (isTimeBooked) {
+                        alert('Bu vaqt allaqachon band qilingan! Iltimos boshqa vaqt tanlang.');
+                        return;
                       }
-                      return null;
-                    })()}
-                  </div>
+
+                      setCustomTime(selectedTimeValue);
+                      if (selectedDate) {
+                        setSelectedTime(selectedTimeValue);
+                      }
+                    }}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-medium mb-4"
+                    style={{
+                      appearance: 'none',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'textfield'
+                    }}
+                    data-format="24"
+                    lang="en-GB"
+                  />
 
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="flex justify-between items-center mb-3">
