@@ -23,7 +23,10 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [selectedEndTime, setSelectedEndTime] = useState<string>('');
   const [showTimeRangeSelector, setShowTimeRangeSelector] = useState<boolean>(false);
+  const [showDurationModal, setShowDurationModal] = useState<boolean>(false);
   const [tempStartTime, setTempStartTime] = useState<string>('');
+  const [selectedHours, setSelectedHours] = useState<number>(1);
+  const [selectedMinutes, setSelectedMinutes] = useState<number>(0);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [clientName, setClientName] = useState<string>('');
   const [clientPhone, setClientPhone] = useState<string>('');
@@ -289,7 +292,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
   const handleTimeClick = (timeStr: string) => {
     setTempStartTime(timeStr);
-    setShowTimeRangeSelector(true);
+    setShowDurationModal(true);
+    setSelectedHours(1);
+    setSelectedMinutes(0);
     setSelectedTime('');
     setSelectedEndTime('');
   };
@@ -298,6 +303,28 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     setSelectedTime(tempStartTime);
     setSelectedEndTime(endTime);
     setShowTimeRangeSelector(false);
+  };
+
+  const handleDurationConfirm = () => {
+    const [startHour, startMin] = tempStartTime.split(':').map(Number);
+    const totalStartMinutes = startHour * 60 + startMin;
+    const durationInMinutes = selectedHours * 60 + selectedMinutes;
+    const totalEndMinutes = totalStartMinutes + durationInMinutes;
+    
+    const endHour = Math.floor(totalEndMinutes / 60);
+    const endMin = totalEndMinutes % 60;
+    
+    // 23:00 dan oshmasligini tekshirish
+    if (endHour >= 23) {
+      alert('Tugash vaqti 23:00 dan oshmasligi kerak!');
+      return;
+    }
+    
+    const endTimeStr = `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
+    
+    setSelectedTime(tempStartTime);
+    setSelectedEndTime(endTimeStr);
+    setShowDurationModal(false);
   };
 
   const handleBooking = () => {
@@ -458,7 +485,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                   <p className="text-sm text-gray-600 mb-4">To'yxona ish vaqti: 08:00 - 23:00</p>
 
                   {/* Mavjud vaqtlar */}
-                  {selectedDate && !showTimeRangeSelector && (
+                  {selectedDate && !showDurationModal && (
                     <div className="mb-6">
                       <div className="bg-white border-2 border-red-400 rounded-lg p-4">
                         <h5 className="font-bold text-gray-900 mb-4 text-center">Mavjud vaqtlar:</h5>
@@ -508,45 +535,6 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     </div>
                   )}
 
-                  {/* Vaqt oralig'ini tanlash */}
-                  {showTimeRangeSelector && (
-                    <div className="mb-6">
-                      <div className="bg-white border-2 border-blue-400 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <h5 className="font-bold text-gray-900">
-                            Boshlanish: {tempStartTime}
-                          </h5>
-                          <button
-                            onClick={() => {
-                              setShowTimeRangeSelector(false);
-                              setTempStartTime('');
-                            }}
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            ✕ Bekor qilish
-                          </button>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-4 text-center">
-                          Tugash vaqtini tanlang (davomiylik):
-                        </p>
-                        <div className="grid grid-cols-2 gap-3 max-h-60 overflow-y-auto">
-                          {generateEndTimeOptions(tempStartTime).map(option => (
-                            <button
-                              key={option.time}
-                              onClick={() => handleTimeRangeSelect(option.time)}
-                              className="px-3 py-2 rounded-lg text-sm font-medium transition-all border-2 
-                                        bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100 cursor-pointer
-                                        text-left"
-                            >
-                              <div className="font-semibold">{option.time}</div>
-                              <div className="text-xs text-blue-600">({option.duration})</div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="flex justify-between items-center mb-3">
                       <span className="text-gray-600 font-medium">Tanlangan vaqt:</span>
@@ -590,6 +578,133 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     </div>
                   </div>
                 </div>
+
+                {/* Duration Modal */}
+                {showDurationModal && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl border shadow-2xl p-6 max-w-md w-full mx-4">
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-xl font-bold text-gray-900">
+                          Davomiylikni Tanlang
+                        </h3>
+                        <button
+                          onClick={() => {
+                            setShowDurationModal(false);
+                            setTempStartTime('');
+                          }}
+                          className="text-gray-500 hover:text-gray-700 text-2xl"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      <div className="mb-6">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                          <div className="text-center">
+                            <div className="text-sm text-blue-600 mb-1">Boshlanish vaqti</div>
+                            <div className="text-2xl font-bold text-blue-800">{tempStartTime}</div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          {/* Soat tanlash */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Soat
+                            </label>
+                            <div className="grid grid-cols-6 gap-2">
+                              {Array.from({ length: 8 }, (_, i) => i + 1).map(hour => (
+                                <button
+                                  key={hour}
+                                  onClick={() => setSelectedHours(hour)}
+                                  className={`
+                                    px-3 py-2 rounded-lg text-sm font-medium transition-all border-2
+                                    ${selectedHours === hour
+                                      ? 'bg-blue-600 text-white border-blue-600'
+                                      : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
+                                    }
+                                  `}
+                                >
+                                  {hour}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Daqiqa tanlash */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Daqiqa
+                            </label>
+                            <div className="grid grid-cols-4 gap-2">
+                              {[0, 15, 30, 45].map(minute => (
+                                <button
+                                  key={minute}
+                                  onClick={() => setSelectedMinutes(minute)}
+                                  className={`
+                                    px-3 py-2 rounded-lg text-sm font-medium transition-all border-2
+                                    ${selectedMinutes === minute
+                                      ? 'bg-blue-600 text-white border-blue-600'
+                                      : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
+                                    }
+                                  `}
+                                >
+                                  {minute === 0 ? '00' : minute}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Preview */}
+                        <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
+                          <div className="text-center">
+                            <div className="text-sm text-green-600 mb-1">Jami davomiylik</div>
+                            <div className="text-lg font-bold text-green-800">
+                              {selectedHours > 0 && selectedMinutes > 0 
+                                ? `${selectedHours} soat ${selectedMinutes} daqiqa`
+                                : selectedHours > 0 
+                                  ? `${selectedHours} soat`
+                                  : `${selectedMinutes} daqiqa`}
+                            </div>
+                            <div className="text-sm text-green-600 mt-2">
+                              Tugash: {(() => {
+                                const [startHour, startMin] = tempStartTime.split(':').map(Number);
+                                const totalMinutes = startHour * 60 + startMin + selectedHours * 60 + selectedMinutes;
+                                const endHour = Math.floor(totalMinutes / 60);
+                                const endMin = totalMinutes % 60;
+                                return `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={() => {
+                            setShowDurationModal(false);
+                            setTempStartTime('');
+                          }}
+                          className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          Bekor qilish
+                        </button>
+                        <button
+                          onClick={handleDurationConfirm}
+                          disabled={selectedHours === 0 && selectedMinutes === 0}
+                          className={`flex-1 px-4 py-3 rounded-lg transition-colors ${
+                            selectedHours === 0 && selectedMinutes === 0
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                          }`}
+                        >
+                          Tasdiqlash
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Summary */}
                 {selectedDate && (
