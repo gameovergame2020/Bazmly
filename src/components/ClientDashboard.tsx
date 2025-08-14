@@ -520,7 +520,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
             {/* Calendar Grid */}
             <div className="mb-6 sm:mb-8">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 text-center sm:text-left">
+                {/* Desktop layout - month with year on left */}
+                <h3 className="hidden sm:block text-lg sm:text-xl font-bold text-gray-900 text-center sm:text-left">
                   {(() => {
                     const months = [
                       'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
@@ -532,7 +533,34 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                   })()}
                 </h3>
                 
-                <div className="flex justify-center sm:justify-start space-x-2">
+                {/* Mobile layout - navigation with month in center */}
+                <div className="flex sm:hidden items-center justify-between w-full space-x-2">
+                  <button
+                    onClick={() => navigateMonth('prev')}
+                    className="px-2 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Oldingi
+                  </button>
+                  <h3 className="text-lg font-bold text-gray-900 text-center flex-1">
+                    {(() => {
+                      const months = [
+                        'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+                        'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'
+                      ];
+                      const monthIndex = currentDate.getMonth();
+                      return months[monthIndex];
+                    })()}
+                  </h3>
+                  <button
+                    onClick={() => navigateMonth('next')}
+                    className="px-2 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Keyingi
+                  </button>
+                </div>
+                
+                {/* Desktop navigation buttons */}
+                <div className="hidden sm:flex justify-center sm:justify-start space-x-2">
                   <button
                     onClick={() => navigateMonth('prev')}
                     className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
