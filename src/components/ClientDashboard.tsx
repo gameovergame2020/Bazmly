@@ -1133,12 +1133,22 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                                 const maxWorkMinutes = 23 * 60; // 23:00 = 1380 daqiqa
                                 const availableMinutes = [0, 15, 30, 45];
 
-                                // Agar tanlangan soat bilan birga daqiqa qo'shilganda 23:00 dan oshmasligini tekshirish
-                                return availableMinutes.filter(minute => {
+                                // Mavjud daqiqalarni filtrlash
+                                const filteredMinutes = availableMinutes.filter(minute => {
                                   const totalDuration = selectedHours * 60 + minute;
                                   const endTime = startTotalMinutes + totalDuration;
                                   return endTime <= maxWorkMinutes;
-                                }).map(minute => (
+                                });
+
+                                // Agar hozirgi tanlangan daqiqa mavjud emas bo'lsa, birinchi mavjud daqiqani tanlash
+                                if (filteredMinutes.length > 0 && !filteredMinutes.includes(selectedMinutes)) {
+                                  // State ni o'zgartirish uchun setTimeout ishlatamiz
+                                  setTimeout(() => {
+                                    setSelectedMinutes(filteredMinutes[0]);
+                                  }, 0);
+                                }
+
+                                return filteredMinutes.map(minute => (
                                   <button
                                     key={minute}
                                     onClick={() => setSelectedMinutes(minute)}
