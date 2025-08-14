@@ -469,45 +469,45 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
         {/* Booking Form Modal */}
         {showBookingModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white w-full h-full sm:h-auto sm:max-w-7xl sm:rounded-xl shadow-2xl sm:max-h-[95vh] overflow-y-auto">
               {/* Modal Header */}
-              <div className="bg-gradient-to-r from-blue-50 to-green-50 border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 flex items-center">
-                    <Clock className="w-7 h-7 mr-3 text-blue-600" />
-                    Vaqt va Ma'lumotlarni To'ldiring
+              <div className="bg-gradient-to-r from-blue-50 to-green-50 border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between sticky top-0 z-10">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg sm:text-2xl font-bold text-gray-900 flex items-center">
+                    <Clock className="w-5 h-5 sm:w-7 sm:h-7 mr-2 sm:mr-3 text-blue-600 flex-shrink-0" />
+                    <span className="truncate">Vaqt va Ma'lumotlarni To'ldiring</span>
                   </h3>
-                  <p className="text-gray-600 mt-1">Kerakli vaqt va shaxsiy ma'lumotlaringizni kiriting</p>
+                  <p className="text-gray-600 mt-1 text-sm sm:text-base hidden sm:block">Kerakli vaqt va shaxsiy ma'lumotlaringizni kiriting</p>
                 </div>
                 <button
                   onClick={() => setShowBookingModal(false)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="text-gray-500 hover:text-gray-700 text-xl sm:text-2xl p-1 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 ml-2"
                 >
                   ✕
                 </button>
               </div>
 
               {/* Modal Content */}
-        <div className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
               {/* Left side - Time Selection */}
-              <div className="space-y-6">
-                <div className="bg-white rounded-lg p-6 border shadow-sm">
-                  <h4 className="font-bold text-gray-900 mb-4 flex items-center text-lg">
-                    <Clock className="w-5 h-5 mr-2 text-blue-600" />
+              <div className="space-y-4 sm:space-y-6">
+                <div className="bg-white rounded-lg p-3 sm:p-6 border shadow-sm">
+                  <h4 className="font-bold text-gray-900 mb-3 sm:mb-4 flex items-center text-base sm:text-lg">
+                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-600" />
                     Vaqt Tanlash
                   </h4>
 
-                  <p className="text-sm text-gray-600 mb-4">To'yxona ish vaqti: 08:00 - 23:00</p>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">To'yxona ish vaqti: 08:00 - 23:00</p>
 
                   {/* Mavjud vaqtlar */}
                   {selectedDate && !showDurationModal && (
-                    <div className="mb-6">
-                      <div className="bg-white border-2 border-red-400 rounded-lg p-4">
-                        <h5 className="font-bold text-gray-900 mb-4 text-center">Mavjud vaqtlar:</h5>
-                        <p className="text-sm text-gray-600 mb-4 text-center">Boshlanish vaqtini tanlang</p>
-                        <div className="grid grid-cols-4 gap-3">
+                    <div className="mb-4 sm:mb-6">
+                      <div className="bg-white border-2 border-red-400 rounded-lg p-3 sm:p-4">
+                        <h5 className="font-bold text-gray-900 mb-3 sm:mb-4 text-center text-sm sm:text-base">Mavjud vaqtlar:</h5>
+                        <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 text-center">Boshlanish vaqtini tanlang</p>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
                           {Array.from({ length: 16 }, (_, i) => {
                             const hour = i + 8;
                             const timeStr = `${hour.toString().padStart(2, '0')}:00`;
@@ -526,7 +526,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                                 }}
                                 disabled={isBooked}
                                 className={`
-                                  px-3 py-2 rounded-lg text-sm font-medium transition-all border-2
+                                  px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all border-2
                                   ${isBooked 
                                     ? 'bg-red-100 text-red-600 border-red-300 cursor-not-allowed' 
                                     : 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 cursor-pointer'
@@ -538,13 +538,13 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             );
                           })}
                         </div>
-                        <div className="flex items-center justify-center space-x-6 mt-4 text-sm">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                        <div className="flex items-center justify-center space-x-3 sm:space-x-6 mt-3 sm:mt-4 text-xs sm:text-sm">
+                          <div className="flex items-center space-x-1 sm:space-x-2">
+                            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full"></div>
                             <span className="text-gray-700">Mavjud</span>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                          <div className="flex items-center space-x-1 sm:space-x-2">
+                            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-400 rounded-full"></div>
                             <span className="text-gray-700">Band qilingan</span>
                           </div>
                         </div>
@@ -552,19 +552,19 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     </div>
                   )}
 
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-gray-600 font-medium">Tanlangan vaqt:</span>
-                      <span className="font-bold text-xl text-blue-600">
+                  <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 space-y-1 sm:space-y-0">
+                      <span className="text-gray-600 font-medium text-sm sm:text-base">Tanlangan vaqt:</span>
+                      <span className="font-bold text-base sm:text-xl text-blue-600">
                         {selectedTime && selectedEndTime 
                           ? `${selectedTime} - ${selectedEndTime}` 
                           : 'Vaqt tanlanmagan'}
                       </span>
                     </div>
                     {selectedTime && selectedEndTime && (
-                      <div className="flex justify-between items-center mb-3">
-                        <span className="text-gray-600 font-medium">Davomiylik:</span>
-                        <span className="font-medium text-gray-900">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 space-y-1 sm:space-y-0">
+                        <span className="text-gray-600 font-medium text-sm sm:text-base">Davomiylik:</span>
+                        <span className="font-medium text-gray-900 text-sm sm:text-base">
                           {(() => {
                             const [startHour, startMin] = selectedTime.split(':').map(Number);
                             const [endHour, endMin] = selectedEndTime.split(':').map(Number);
@@ -580,9 +580,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         </span>
                       </div>
                     )}
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 font-medium">Narx:</span>
-                      <span className="font-bold text-lg text-green-600">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
+                      <span className="text-gray-600 font-medium text-sm sm:text-base">Narx:</span>
+                      <span className="font-bold text-base sm:text-lg text-green-600">
                         {selectedTime && selectedEndTime ? (() => {
                           const [startHour] = selectedTime.split(':').map(Number);
                           const [endHour, endMin] = selectedEndTime.split(':').map(Number);
@@ -598,10 +598,10 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
                 {/* Duration Modal */}
                 {showDurationModal && (
-                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl border shadow-2xl p-6 max-w-md w-full mx-4">
-                      <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-bold text-gray-900">
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+                    <div className="bg-white w-full h-full sm:h-auto sm:rounded-xl border shadow-2xl p-4 sm:p-6 sm:max-w-md sm:w-full sm:mx-4 overflow-y-auto">
+                      <div className="flex items-center justify-between mb-4 sm:mb-6 sticky top-0 bg-white pb-2 sm:pb-0 sm:static">
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900">
                           Davomiylikni Tanlang
                         </h3>
                         <button
@@ -609,33 +609,33 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             setShowDurationModal(false);
                             setTempStartTime('');
                           }}
-                          className="text-gray-500 hover:text-gray-700 text-2xl"
+                          className="text-gray-500 hover:text-gray-700 text-xl sm:text-2xl p-1 hover:bg-gray-100 rounded"
                         >
                           ✕
                         </button>
                       </div>
 
-                      <div className="mb-6">
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                      <div className="mb-4 sm:mb-6">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
                           <div className="text-center">
-                            <div className="text-sm text-blue-600 mb-1">Boshlanish vaqti</div>
-                            <div className="text-2xl font-bold text-blue-800">{tempStartTime}</div>
+                            <div className="text-xs sm:text-sm text-blue-600 mb-1">Boshlanish vaqti</div>
+                            <div className="text-xl sm:text-2xl font-bold text-blue-800">{tempStartTime}</div>
                           </div>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-3 sm:space-y-4">
                           {/* Soat tanlash */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                               Soat
                             </label>
-                            <div className="grid grid-cols-6 gap-2">
+                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                               {Array.from({ length: 8 }, (_, i) => i + 1).map(hour => (
                                 <button
                                   key={hour}
                                   onClick={() => setSelectedHours(hour)}
                                   className={`
-                                    px-3 py-2 rounded-lg text-sm font-medium transition-all border-2
+                                    px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all border-2
                                     ${selectedHours === hour
                                       ? 'bg-blue-600 text-white border-blue-600'
                                       : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
@@ -650,7 +650,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
                           {/* Daqiqa tanlash */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                               Daqiqa
                             </label>
                             <div className="grid grid-cols-4 gap-2">
@@ -659,7 +659,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                                   key={minute}
                                   onClick={() => setSelectedMinutes(minute)}
                                   className={`
-                                    px-3 py-2 rounded-lg text-sm font-medium transition-all border-2
+                                    px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all border-2
                                     ${selectedMinutes === minute
                                       ? 'bg-blue-600 text-white border-blue-600'
                                       : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
@@ -674,17 +674,17 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         </div>
 
                         {/* Preview */}
-                        <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="mt-3 sm:mt-4 bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
                           <div className="text-center">
-                            <div className="text-sm text-green-600 mb-1">Jami davomiylik</div>
-                            <div className="text-lg font-bold text-green-800">
+                            <div className="text-xs sm:text-sm text-green-600 mb-1">Jami davomiylik</div>
+                            <div className="text-base sm:text-lg font-bold text-green-800">
                               {selectedHours > 0 && selectedMinutes > 0 
                                 ? `${selectedHours} soat ${selectedMinutes} daqiqa`
                                 : selectedHours > 0 
                                   ? `${selectedHours} soat`
                                   : `${selectedMinutes} daqiqa`}
                             </div>
-                            <div className="text-sm text-green-600 mt-2">
+                            <div className="text-xs sm:text-sm text-green-600 mt-2">
                               Tugash: {(() => {
                                 const [startHour, startMin] = tempStartTime.split(':').map(Number);
                                 const totalMinutes = startHour * 60 + startMin + selectedHours * 60 + selectedMinutes;
@@ -697,20 +697,20 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         </div>
                       </div>
 
-                      <div className="flex space-x-3">
+                      <div className="flex space-x-2 sm:space-x-3 sticky bottom-0 bg-white pt-3 sm:pt-0 sm:static">
                         <button
                           onClick={() => {
                             setShowDurationModal(false);
                             setTempStartTime('');
                           }}
-                          className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                          className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base"
                         >
                           Bekor qilish
                         </button>
                         <button
                           onClick={handleDurationConfirm}
                           disabled={selectedHours === 0 && selectedMinutes === 0}
-                          className={`flex-1 px-4 py-3 rounded-lg transition-colors ${
+                          className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-colors text-sm sm:text-base ${
                             selectedHours === 0 && selectedMinutes === 0
                               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                               : 'bg-blue-600 text-white hover:bg-blue-700'
@@ -727,16 +727,16 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
               </div>
 
               {/* Right side - Client Form */}
-              <div className="space-y-6">
-                <div className="bg-white rounded-lg p-6 border shadow-sm">
-                  <h4 className="font-bold text-gray-900 mb-4 flex items-center text-lg">
-                    <Users className="w-5 h-5 mr-2 text-blue-600" />
+              <div className="space-y-4 sm:space-y-6">
+                <div className="bg-white rounded-lg p-3 sm:p-6 border shadow-sm">
+                  <h4 className="font-bold text-gray-900 mb-3 sm:mb-4 flex items-center text-base sm:text-lg">
+                    <Users className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-600" />
                     Shaxsiy Ma'lumotlar
                   </h4>
 
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                         Ism Familiya *
                       </label>
                       <input
@@ -744,13 +744,13 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         value={clientName}
                         onChange={(e) => setClientName(e.target.value)}
                         placeholder="Ismingiz va familiyangizni kiriting"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                         Telefon Raqam *
                       </label>
                       <input
@@ -758,7 +758,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         value={clientPhone}
                         onChange={(e) => setClientPhone(e.target.value)}
                         placeholder="+998 90 123 45 67"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                         required
                       />
                     </div>
@@ -768,18 +768,18 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                 </div>
 
                 {/* Action Button */}
-                <div className="bg-white rounded-lg p-6 border shadow-sm">
+                <div className="bg-white rounded-lg p-3 sm:p-6 border shadow-sm">
                   <button
                     onClick={handleBooking}
                     disabled={!selectedDate || !clientName.trim() || !clientPhone.trim() || !selectedTime || !selectedEndTime}
-                    className={`w-full flex items-center justify-center space-x-3 px-6 py-4 rounded-lg transition-all font-bold text-lg shadow-lg ${
+                    className={`w-full flex items-center justify-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-3 sm:py-4 rounded-lg transition-all font-bold text-sm sm:text-lg shadow-lg ${
                       selectedDate && clientName.trim() && clientPhone.trim() && selectedTime && selectedEndTime
                         ? 'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700 transform hover:scale-105'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                   >
-                    <Check className="w-6 h-6" />
-                    <span>
+                    <Check className="w-4 h-4 sm:w-6 sm:h-6" />
+                    <span className="text-center leading-tight">
                       {!selectedDate ? 'Avval sana tanlang' :
                        !selectedTime || !selectedEndTime ? 'Vaqt oralig\'ini tanlang' :
                        !clientName.trim() || !clientPhone.trim() ? 'Ma\'lumotlarni to\'ldiring' :
@@ -788,8 +788,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                   </button>
 
                   {selectedDate && (
-                    <div className="mt-3 text-center">
-                      <p className="text-sm text-gray-600">
+                    <div className="mt-2 sm:mt-3 text-center">
+                      <p className="text-xs sm:text-sm text-gray-600">
                         {new Date(selectedDate).toLocaleDateString('uz-UZ', {
                           weekday: 'long',
                           day: 'numeric',
@@ -806,10 +806,10 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
           </div>
 
               {/* Modal Footer */}
-              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+              <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex justify-end space-x-2 sm:space-x-3 sticky bottom-0 sm:static">
                 <button
                   onClick={() => setShowBookingModal(false)}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 sm:px-6 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base"
                 >
                   Yopish
                 </button>
