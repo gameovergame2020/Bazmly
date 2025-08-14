@@ -392,7 +392,15 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
             <div className="mb-6 sm:mb-8">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
                 <h3 className="text-lg sm:text-xl font-bold text-gray-900 text-center sm:text-left">
-                  {currentDate.toLocaleDateString('uz-UZ', { month: 'long', year: 'numeric' })}
+                  {(() => {
+                    const months = [
+                      'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+                      'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'
+                    ];
+                    const monthIndex = currentDate.getMonth();
+                    const year = currentDate.getFullYear();
+                    return `${months[monthIndex]} ${year}`;
+                  })()}
                 </h3>
                 
                 <div className="flex justify-center sm:justify-start space-x-2">
