@@ -630,7 +630,11 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                               Soat
                             </label>
                             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                              {Array.from({ length: 8 }, (_, i) => i + 1).map(hour => (
+                              {Array.from({ length: (() => {
+                                const [startHour] = tempStartTime.split(':').map(Number);
+                                const maxHours = 23 - startHour; // 23:00 gacha bo'lishi mumkin
+                                return Math.min(8, maxHours); // Maksimum 8 soat yoki mavjud vaqt
+                              })() }, (_, i) => i + 1).map(hour => (
                                 <button
                                   key={hour}
                                   onClick={() => setSelectedHours(hour)}
