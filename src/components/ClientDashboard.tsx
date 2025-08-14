@@ -508,7 +508,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         <h5 className="font-bold text-gray-900 mb-3 sm:mb-4 text-center text-sm sm:text-base">Mavjud vaqtlar:</h5>
                         <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 text-center">Boshlanish vaqtini tanlang</p>
                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
-                          {Array.from({ length: 16 }, (_, i) => {
+                          {Array.from({ length: 15 }, (_, i) => {
                             const hour = i + 8;
                             const timeStr = `${hour.toString().padStart(2, '0')}:00`;
                             const dayData = getSelectedDayAvailability();
