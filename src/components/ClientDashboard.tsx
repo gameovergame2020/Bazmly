@@ -30,6 +30,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [clientName, setClientName] = useState<string>('');
   const [clientPhone, setClientPhone] = useState<string>('');
+  const [showBookingModal, setShowBookingModal] = useState<boolean>(false);
 
   // Demo ma'lumotlar - real holatda server'dan keladi
   const availability: DayAvailability[] = [
@@ -462,17 +463,42 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
           </div>
         </div>
 
-        {/* Booking Form - Always Visible */}
-        <div className="mt-8 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border border-blue-200 overflow-hidden">
-          <div className="bg-white border-b border-gray-200 px-6 py-4">
-            <h3 className="text-2xl font-bold text-gray-900 flex items-center">
-              <Clock className="w-7 h-7 mr-3 text-blue-600" />
+        {/* Open Booking Modal Button */}
+        {selectedDate && (
+          <div className="mt-8 text-center">
+            <button
+              onClick={() => setShowBookingModal(true)}
+              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-green-600 text-white font-bold text-lg rounded-xl shadow-lg hover:from-blue-700 hover:to-green-700 transform hover:scale-105 transition-all"
+            >
+              <Clock className="w-6 h-6 inline mr-3" />
               Vaqt va Ma'lumotlarni To'ldiring
-            </h3>
-            <p className="text-gray-600 mt-1">Kerakli vaqt va shaxsiy ma'lumotlaringizni kiriting</p>
+            </button>
           </div>
+        )}
 
-          <div className="p-6">
+        {/* Booking Form Modal */}
+        {showBookingModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Modal Header */}
+              <div className="bg-gradient-to-r from-blue-50 to-green-50 border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 flex items-center">
+                    <Clock className="w-7 h-7 mr-3 text-blue-600" />
+                    Vaqt va Ma'lumotlarni To'ldiring
+                  </h3>
+                  <p className="text-gray-600 mt-1">Kerakli vaqt va shaxsiy ma'lumotlaringizni kiriting</p>
+                </div>
+                <button
+                  onClick={() => setShowBookingModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Modal Content */}
+        <div className="p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Left side - Time Selection */}
               <div className="space-y-6">
@@ -839,7 +865,19 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
             
           </div>
-        </div>
+
+              {/* Modal Footer */}
+              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowBookingModal(false)}
+                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Yopish
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
