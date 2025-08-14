@@ -372,23 +372,23 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     const [startHour, startMinute] = startTime.split(':').map(Number);
     const startMinutes = startHour * 60 + startMinute;
     const options = [];
-    
+
     // 30 daqiqadan 8 soatgacha
     for (let minutes = 30; minutes <= 480; minutes += 15) {
       const endMinutes = startMinutes + minutes;
       if (endMinutes >= 23 * 60) break; // 23:00 dan oshmasin
-      
+
       const endHour = Math.floor(endMinutes / 60);
       const endMin = endMinutes % 60;
       const timeStr = `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
-      
-      const duration = minutes < 60 ? `${minutes} daq` : 
+
+      const duration = minutes < 60 ? `${minutes} daq` :
                       minutes === 60 ? `1 soat` :
                       `${Math.floor(minutes / 60)} soat ${minutes % 60 ? (minutes % 60) + ' daq' : ''}`;
-      
+
       options.push({ time: timeStr, duration, minutes });
     }
-    
+
     return options;
   };
 
@@ -412,18 +412,24 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     const totalStartMinutes = startHour * 60 + startMin;
     const durationInMinutes = selectedHours * 60 + selectedMinutes;
     const totalEndMinutes = totalStartMinutes + durationInMinutes;
-    
+
     const endHour = Math.floor(totalEndMinutes / 60);
     const endMin = totalEndMinutes % 60;
-    
+
     // 23:00 dan oshmasligini tekshirish
-    if (endHour >= 23) {
+    if (endHour >= 23 && endMin > 0) { // Agar soat 23:00 dan katta bo'lsa yoki 23:00 ga teng bo'lib daqiqa bor bo'lsa
       alert('Tugash vaqti 23:00 dan oshmasligi kerak!');
       return;
     }
-    
+    // Agar to'xtovsiz 23:00 ga teng bo'lsa ham, uni ham tekshirish (masalan, 22:30 + 1 soat = 23:30)
+    if (totalEndMinutes > 23 * 60) {
+        alert('Tugash vaqti 23:00 dan oshmasligi kerak!');
+        return;
+    }
+
+
     const endTimeStr = `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
-    
+
     setSelectedTime(tempStartTime);
     setSelectedEndTime(endTimeStr);
     setShowDurationModal(false);
@@ -471,8 +477,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     if (quantity <= 0) {
       setSelectedMenuItems(prev => prev.filter(item => item.id !== itemId));
     } else {
-      setSelectedMenuItems(prev => 
-        prev.map(item => 
+      setSelectedMenuItems(prev =>
+        prev.map(item =>
           item.id === itemId ? { ...item, quantity } : item
         )
       );
@@ -542,7 +548,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     return `${months[monthIndex]} ${year}`;
                   })()}
                 </h3>
-                
+
                 {/* Mobile layout - navigation with month in center */}
                 <div className="flex sm:hidden items-center justify-between w-full space-x-2">
                   <button
@@ -568,7 +574,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     Keyingi
                   </button>
                 </div>
-                
+
                 {/* Desktop navigation buttons */}
                 <div className="hidden sm:flex justify-center sm:justify-start space-x-2">
                   <button
@@ -584,7 +590,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     Keyingi →
                   </button>
                 </div>
-                
+
                 <div className="flex items-center justify-center sm:justify-end space-x-3 sm:space-x-4 text-xs sm:text-sm">
                   <div className="flex items-center space-x-1 sm:space-x-2">
                     <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full"></div>
@@ -654,7 +660,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
           </div>
         </div>
 
-        
+
 
         {/* Pricing and Menu Modal */}
         {showPricingModal && (
@@ -732,8 +738,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           key={pkg.id}
                           onClick={() => setSelectedPricing(pkg)}
                           className={`p-3 sm:p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                            selectedPricing?.id === pkg.id 
-                              ? 'border-blue-500 bg-blue-50' 
+                            selectedPricing?.id === pkg.id
+                              ? 'border-blue-500 bg-blue-50'
                               : pkg.color + ' hover:border-blue-300'
                           }`}
                         >
@@ -780,7 +786,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     <div className="space-y-3">
                       {menuCategories.map(category => {
                         const isExpanded = expandedCategory === category.id;
-                        
+
                         return (
                           <div key={category.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                             {/* Category Header - Clickable */}
@@ -965,14 +971,17 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         <h5 className="font-bold text-gray-900 mb-3 sm:mb-4 text-center text-sm sm:text-base">Mavjud vaqtlar:</h5>
                         <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 text-center">Boshlanish vaqtini tanlang</p>
                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
-                          {Array.from({ length: 15 }, (_, i) => {
+                          {Array.from({ length: 16 }, (_, i) => {
                             const hour = i + 8;
+                            // 23:00 gacha barcha vaqtlarni ko'rsatish (8:00 dan 23:00 gacha)
+                            if (hour > 23) return null;
+
                             const timeStr = `${hour.toString().padStart(2, '0')}:00`;
                             const dayData = getSelectedDayAvailability();
-                            const isBooked = dayData?.timeSlots.some(slot => 
+                            const isBooked = dayData?.timeSlots.some(slot =>
                               slot.time === timeStr && slot.booked
                             );
-                            
+
                             return (
                               <button
                                 key={hour}
@@ -983,10 +992,10 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                                 }}
                                 disabled={isBooked}
                                 className={`
-                                  px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all border-2
-                                  ${isBooked 
-                                    ? 'bg-red-100 text-red-600 border-red-300 cursor-not-allowed' 
-                                    : 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 cursor-pointer'
+                                  px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg transition-all border-2
+                                  ${isBooked
+                                    ? 'bg-red-100 text-red-600 border-red-300 cursor-not-allowed'
+                                    : 'bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:border-green-400'
                                   }
                                 `}
                               >
@@ -1013,8 +1022,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 space-y-1 sm:space-y-0">
                       <span className="text-gray-600 font-medium text-sm sm:text-base">Tanlangan vaqt:</span>
                       <span className="font-bold text-base sm:text-xl text-blue-600">
-                        {selectedTime && selectedEndTime 
-                          ? `${selectedTime} - ${selectedEndTime}` 
+                        {selectedTime && selectedEndTime
+                          ? `${selectedTime} - ${selectedEndTime}`
                           : 'Vaqt tanlanmagan'}
                       </span>
                     </div>
@@ -1028,9 +1037,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             const totalMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
                             const hours = Math.floor(totalMinutes / 60);
                             const minutes = totalMinutes % 60;
-                            return hours > 0 && minutes > 0 
+                            return hours > 0 && minutes > 0
                               ? `${hours} soat ${minutes} daqiqa`
-                              : hours > 0 
+                              : hours > 0
                                 ? `${hours} soat`
                                 : `${minutes} daqiqa`;
                           })()}
@@ -1092,7 +1101,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                                 const maxWorkHour = 23; // Ish vaqti 23:00 gacha
                                 const maxPossibleHours = maxWorkHour - startHour; // Ish vaqti doirasida qolgan soatlar
                                 const availableHours = Math.min(8, maxPossibleHours); // Maksimum 8 soat yoki ish vaqti oxirigacha
-                                
+
                                 return Array.from({ length: availableHours }, (_, i) => i + 1).map(hour => (
                                   <button
                                     key={hour}
@@ -1123,7 +1132,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                                 const startTotalMinutes = startHour * 60 + startMin;
                                 const maxWorkMinutes = 23 * 60; // 23:00 = 1380 daqiqa
                                 const availableMinutes = [0, 15, 30, 45];
-                                
+
                                 // Agar tanlangan soat bilan birga daqiqa qo'shilganda 23:00 dan oshmasligini tekshirish
                                 return availableMinutes.filter(minute => {
                                   const totalDuration = selectedHours * 60 + minute;
@@ -1154,9 +1163,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           <div className="text-center">
                             <div className="text-xs sm:text-sm text-green-600 mb-1">Jami davomiylik</div>
                             <div className="text-base sm:text-lg font-bold text-green-800">
-                              {selectedHours > 0 && selectedMinutes > 0 
+                              {selectedHours > 0 && selectedMinutes > 0
                                 ? `${selectedHours} soat ${selectedMinutes} daqiqa`
-                                : selectedHours > 0 
+                                : selectedHours > 0
                                   ? `${selectedHours} soat`
                                   : `${selectedMinutes} daqiqa`}
                             </div>
@@ -1199,7 +1208,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                   </div>
                 )}
 
-                
+
               </div>
 
               {/* Right side - Client Form */}
@@ -1261,7 +1270,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       </p>
                     </div>
 
-                    
+
                   </div>
                 </div>
 
@@ -1301,7 +1310,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
               </div>
             </div>
 
-            
+
           </div>
 
               {/* Modal Footer */}
