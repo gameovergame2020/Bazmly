@@ -21,7 +21,6 @@ interface DayAvailability {
 export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
-  const [customTime, setCustomTime] = useState<string>('10:00'); // Yangi state: custom vaqt uchun
   const [currentDate, setCurrentDate] = useState(new Date());
   const [clientName, setClientName] = useState<string>('');
   const [clientPhone, setClientPhone] = useState<string>('');
@@ -261,12 +260,10 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   };
 
   const handleBooking = () => {
-    const finalTime = selectedTime || customTime;
-    if (selectedDate && finalTime && clientName && clientPhone) {
-      alert(`Band qilindi!\nSana: ${selectedDate}\nVaqt: ${finalTime}\nMijoz: ${clientName}\nTelefon: ${clientPhone}`);
+    if (selectedDate && selectedTime && clientName && clientPhone) {
+      alert(`Band qilindi!\nSana: ${selectedDate}\nVaqt: ${selectedTime}\nMijoz: ${clientName}\nTelefon: ${clientPhone}`);
       setSelectedDate('');
       setSelectedTime('');
-      setCustomTime('10:00');
       setClientName('');
       setClientPhone('');
     } else {
@@ -361,7 +358,6 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         if (day.isCurrentMonth && day.available) {
                           setSelectedDate(day.fullDate);
                           setSelectedTime('');
-                          setCustomTime('10:00'); // Sana o'zgarganda custom vaqtni reset qilish
                         }
                       }}
                       disabled={!day.isCurrentMonth || !day.available}
@@ -417,119 +413,38 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
                   <p className="text-sm text-gray-600 mb-4">To'yxona ish vaqti: 08:00 - 23:00</p>
 
-                  {/* Custom Time Picker */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-4 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        <Clock className="w-5 h-5 text-blue-600" />
-                        <span className="font-semibold text-gray-800">Vaqt tanlash</span>
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        08:00 - 23:00 oralig'ida
-                      </div>
-                    </div>
-
-                    {/* Custom Time Input */}
-                    <div className="relative">
-                      <div className="flex border border-gray-300 rounded-lg overflow-hidden bg-white">
-                        {/* Hours */}
-                        <select
-                          value={customTime.split(':')[0]}
-                          onChange={(e) => {
-                            const hours = e.target.value.padStart(2, '0');
-                            const minutes = customTime.split(':')[1] || '00';
-                            const newTime = `${hours}:${minutes}`;
-                            setCustomTime(newTime);
-                            if (selectedDate) {
-                              setSelectedTime(newTime);
-                            }
-                          }}
-                          className="flex-1 px-4 py-3 text-lg font-medium bg-transparent border-none outline-none focus:ring-0 appearance-none cursor-pointer"
-                          style={{ backgroundImage: 'none' }}
-                        >
-                          {Array.from({ length: 16 }, (_, i) => {
-                            const hour = i + 8; // 8:00 dan 23:00 gacha
-                            const hourStr = hour.toString().padStart(2, '0');
-                            const dayData = getSelectedDayAvailability();
-                            const isBooked = selectedDate && dayData?.timeSlots.some(slot => 
-                              slot.time === `${hourStr}:00` && slot.booked
-                            );
-                            return (
-                              <option 
-                                key={hour} 
-                                value={hourStr}
-                                className={isBooked ? 'text-red-600 bg-red-50' : 'text-green-600'}
-                              >
-                                {hourStr}
-                              </option>
-                            );
-                          })}
-                        </select>
-                        
-                        <div className="flex items-center px-2 text-lg font-medium text-gray-600">:</div>
-                        
-                        {/* Minutes */}
-                        <select
-                          value={customTime.split(':')[1] || '00'}
-                          onChange={(e) => {
-                            const hours = customTime.split(':')[0] || '08';
-                            const minutes = e.target.value;
-                            const newTime = `${hours}:${minutes}`;
-                            setCustomTime(newTime);
-                            if (selectedDate) {
-                              setSelectedTime(newTime);
-                            }
-                          }}
-                          className="flex-1 px-4 py-3 text-lg font-medium bg-transparent border-none outline-none focus:ring-0 appearance-none cursor-pointer"
-                          style={{ backgroundImage: 'none' }}
-                        >
-                          <option value="00">00</option>
-                          <option value="15">15</option>
-                          <option value="30">30</option>
-                          <option value="45">45</option>
-                        </select>
-                      </div>
-                      
-                      {/* Time indicator */}
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                        <Clock className="w-5 h-5 text-gray-400" />
-                      </div>
-                    </div>
-
-                    {/* Available Hours Display */}
-                    {selectedDate && (
-                      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                        <h5 className="font-medium text-gray-800 mb-3">Mavjud vaqtlar:</h5>
-                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                  {/* Mavjud vaqtlar */}
+                  {selectedDate && (
+                    <div className="mb-6">
+                      <div className="bg-white border-2 border-red-400 rounded-lg p-4">
+                        <h5 className="font-bold text-gray-900 mb-4 text-center">Mavjud vaqtlar:</h5>
+                        <div className="grid grid-cols-4 gap-3">
                           {Array.from({ length: 16 }, (_, i) => {
                             const hour = i + 8;
-                            const hourStr = hour.toString().padStart(2, '0');
-                            const timeStr = `${hourStr}:00`;
+                            const timeStr = `${hour.toString().padStart(2, '0')}:00`;
                             const dayData = getSelectedDayAvailability();
                             const isBooked = dayData?.timeSlots.some(slot => 
                               slot.time === timeStr && slot.booked
                             );
-                            const isSelected = customTime.startsWith(hourStr);
+                            const isSelected = selectedTime === timeStr;
                             
                             return (
                               <button
                                 key={hour}
                                 onClick={() => {
                                   if (!isBooked) {
-                                    const newTime = `${hourStr}:00`;
-                                    setCustomTime(newTime);
-                                    setSelectedTime(newTime);
+                                    setSelectedTime(timeStr);
                                   }
                                 }}
                                 disabled={isBooked}
                                 className={`
-                                  px-2 py-1 rounded text-sm font-medium transition-colors
-                                  ${isSelected ? 'ring-2 ring-blue-500' : ''}
-                                  ${isBooked 
-                                    ? 'bg-red-100 text-red-600 cursor-not-allowed border-red-300' 
-                                    : 'bg-green-100 text-green-700 hover:bg-green-200 cursor-pointer border-green-300'
+                                  px-3 py-2 rounded-lg text-sm font-medium transition-all border-2
+                                  ${isSelected 
+                                    ? 'bg-blue-500 text-white border-blue-600' 
+                                    : isBooked 
+                                      ? 'bg-red-100 text-red-600 border-red-300 cursor-not-allowed' 
+                                      : 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 cursor-pointer'
                                   }
-                                  border
                                 `}
                               >
                                 {timeStr}
@@ -537,55 +452,32 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             );
                           })}
                         </div>
-                        <div className="flex items-center justify-center space-x-6 mt-3 text-xs">
+                        <div className="flex items-center justify-center space-x-6 mt-4 text-sm">
                           <div className="flex items-center space-x-2">
                             <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                            <span className="text-gray-600">Mavjud</span>
+                            <span className="text-gray-700">Mavjud</span>
                           </div>
                           <div className="flex items-center space-x-2">
                             <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                            <span className="text-gray-600">Band qilingan</span>
+                            <span className="text-gray-700">Band qilingan</span>
                           </div>
                         </div>
                       </div>
-                    )}
-
-                    {/* Band qilingan vaqtlar haqida ogohlantirish */}
-                    {selectedDate && (() => {
-                      const dayData = getSelectedDayAvailability();
-                      const bookedTimes = dayData?.timeSlots.filter(slot => slot.booked).map(slot => slot.time) || [];
-                      if (bookedTimes.length > 0) {
-                        return (
-                          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                            <p className="text-red-700 font-medium mb-2">
-                              Band qilingan vaqtlar:
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {bookedTimes.map((time, index) => (
-                                <span key={index} className="bg-red-200 text-red-800 px-2 py-1 rounded text-sm">
-                                  {time}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })()}
-                  </div>
+                    </div>
+                  )}
 
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="flex justify-between items-center mb-3">
                       <span className="text-gray-600 font-medium">Tanlangan vaqt:</span>
                       <span className="font-bold text-xl text-blue-600">
-                        {customTime}
+                        {selectedTime || 'Vaqt tanlanmagan'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 font-medium">Narx:</span>
                       <span className="font-bold text-lg text-green-600">
-                        {customTime && parseInt(customTime.split(':')[0]) >= 18 ? '$2,000' :
-                         customTime && parseInt(customTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
+                        {selectedTime && parseInt(selectedTime.split(':')[0]) >= 18 ? '$2,000' :
+                         selectedTime && parseInt(selectedTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
                       </span>
                     </div>
                   </div>
@@ -602,14 +494,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Vaqt:</span>
-                        <span className="font-medium">{customTime}</span>
+                        <span className="font-medium">{selectedTime || 'Tanlanmagan'}</span>
                       </div>
                       <hr className="my-2" />
                       <div className="flex justify-between items-center">
                         <span className="text-gray-900 font-semibold">Jami narx:</span>
                         <span className="font-bold text-xl text-green-600">
-                          {customTime && parseInt(customTime.split(':')[0]) >= 18 ? '$2,000' :
-                           customTime && parseInt(customTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
+                          {selectedTime && parseInt(selectedTime.split(':')[0]) >= 18 ? '$2,000' :
+                           selectedTime && parseInt(selectedTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
                         </span>
                       </div>
                     </div>
@@ -662,9 +554,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                 <div className="bg-white rounded-lg p-6 border shadow-sm">
                   <button
                     onClick={handleBooking}
-                    disabled={!selectedDate || !clientName.trim() || !clientPhone.trim() || !customTime}
+                    disabled={!selectedDate || !clientName.trim() || !clientPhone.trim() || !selectedTime}
                     className={`w-full flex items-center justify-center space-x-3 px-6 py-4 rounded-lg transition-all font-bold text-lg shadow-lg ${
-                      selectedDate && clientName.trim() && clientPhone.trim() && customTime
+                      selectedDate && clientName.trim() && clientPhone.trim() && selectedTime
                         ? 'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700 transform hover:scale-105'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
