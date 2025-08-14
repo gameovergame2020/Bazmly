@@ -644,45 +644,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
           </div>
         </div>
 
-        {/* Pricing and Menu Section */}
-        <div className="mt-6 sm:mt-8 bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-3 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-blue-50">
-            <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-              <ChefHat className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
-              <div className="flex-1">
-                <h2 className="text-lg sm:text-2xl font-bold text-gray-900">Narxlar va Ovqatlar</h2>
-                <p className="text-sm sm:text-base text-gray-600">To'y paketi va ovqatlarni tanlang</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-3 sm:p-6">
-            <div className="text-center">
-              <button
-                onClick={() => setShowPricingModal(true)}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all font-bold text-base sm:text-lg shadow-lg transform hover:scale-105 flex items-center justify-center space-x-2 sm:space-x-3"
-              >
-                <Calculator className="w-5 h-5 sm:w-6 sm:h-6" />
-                <span>Narxlarni Ko'rish va Hisoblash</span>
-              </button>
-              
-              <div className="mt-4 sm:mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 text-center">
-                <div className="bg-blue-50 rounded-lg p-3 sm:p-4">
-                  <div className="text-xl sm:text-2xl font-bold text-blue-600">3</div>
-                  <div className="text-xs sm:text-sm text-gray-600">To'y Paketi</div>
-                </div>
-                <div className="bg-green-50 rounded-lg p-3 sm:p-4">
-                  <div className="text-xl sm:text-2xl font-bold text-green-600">17</div>
-                  <div className="text-xs sm:text-sm text-gray-600">Ovqat Turi</div>
-                </div>
-                <div className="bg-purple-50 rounded-lg p-3 sm:p-4">
-                  <div className="text-xl sm:text-2xl font-bold text-purple-600">$25+</div>
-                  <div className="text-xs sm:text-sm text-gray-600">Minimal Narx</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        
 
         {/* Pricing and Menu Modal */}
         {showPricingModal && (
@@ -1241,6 +1203,17 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
                     
                   </div>
+                </div>
+
+                {/* Pricing Button */}
+                <div className="bg-white rounded-lg p-3 sm:p-6 border shadow-sm">
+                  <button
+                    onClick={() => setShowPricingModal(true)}
+                    className="w-full flex items-center justify-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all font-medium text-sm sm:text-base shadow-md mb-3 sm:mb-4"
+                  >
+                    <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span>Narxlar va Ovqatlar</span>
+                  </button>
                 </div>
 
                 {/* Action Button */}
