@@ -1240,17 +1240,6 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                   </div>
                 </div>
 
-                {/* Pricing Button */}
-                <div className="bg-white rounded-lg p-3 sm:p-6 border shadow-sm">
-                  <button
-                    onClick={() => setShowPricingModal(true)}
-                    className="w-full flex items-center justify-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all font-medium text-sm sm:text-base shadow-md mb-3 sm:mb-4"
-                  >
-                    <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span>Narxlar va Ovqatlar</span>
-                  </button>
-                </div>
-
                 {/* Action Button */}
                 <div className="bg-white rounded-lg p-3 sm:p-6 border shadow-sm">
                   <button
