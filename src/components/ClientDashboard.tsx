@@ -732,59 +732,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                   </div>
                 )}
 
-                {/* Summary */}
-                {selectedDate && (
-                  <div className="bg-white rounded-lg p-6 border shadow-sm">
-                    <h4 className="font-bold text-gray-900 mb-4">Buyurtma Xulosasi:</h4>
-                    <div className="space-y-3 text-sm">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Sana:</span>
-                        <span className="font-medium">{new Date(selectedDate).toLocaleDateString('uz-UZ')}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Vaqt:</span>
-                        <span className="font-medium">
-                          {selectedTime && selectedEndTime 
-                            ? `${selectedTime} - ${selectedEndTime}` 
-                            : 'Tanlanmagan'}
-                        </span>
-                      </div>
-                      {selectedTime && selectedEndTime && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Davomiylik:</span>
-                          <span className="font-medium">
-                            {(() => {
-                              const [startHour, startMin] = selectedTime.split(':').map(Number);
-                              const [endHour, endMin] = selectedEndTime.split(':').map(Number);
-                              const totalMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
-                              const hours = Math.floor(totalMinutes / 60);
-                              const minutes = totalMinutes % 60;
-                              return hours > 0 && minutes > 0 
-                                ? `${hours} soat ${minutes} daqiqa`
-                                : hours > 0 
-                                  ? `${hours} soat`
-                                  : `${minutes} daqiqa`;
-                            })()}
-                          </span>
-                        </div>
-                      )}
-                      <hr className="my-2" />
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-900 font-semibold">Jami narx:</span>
-                        <span className="font-bold text-xl text-green-600">
-                          {selectedTime && selectedEndTime ? (() => {
-                            const [startHour] = selectedTime.split(':').map(Number);
-                            const [endHour, endMin] = selectedEndTime.split(':').map(Number);
-                            const totalMinutes = (endHour * 60 + endMin) - (startHour * 60);
-                            const hours = Math.ceil(totalMinutes / 60);
-                            const hourlyRate = startHour >= 18 ? 400 : startHour >= 10 ? 300 : 200;
-                            return `$${hours * hourlyRate}`;
-                          })() : '$0'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                
               </div>
 
               {/* Right side - Client Form */}
