@@ -454,11 +454,55 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                   Vaqt tanlash
                 </h4>
 
+                {/* Predefined Time Slots */}
+                <div className="mb-6">
+                  <h5 className="font-semibold text-gray-900 mb-4 flex items-center">
+                    <Clock className="w-5 h-5 mr-2 text-green-600" />
+                    Tayyor vaqtlar
+                  </h5>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {getSelectedDayAvailability()?.timeSlots.map((slot, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          if (slot.available) {
+                            setSelectedTime(slot.time);
+                            setCustomTime(slot.time);
+                          }
+                        }}
+                        disabled={!slot.available}
+                        className={`
+                          p-4 rounded-lg border-2 transition-all text-center
+                          ${selectedTime === slot.time 
+                            ? 'border-green-500 bg-green-50 text-green-700'
+                            : slot.available 
+                              ? 'border-gray-200 hover:border-green-300 hover:bg-green-50'
+                              : 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
+                          }
+                        `}
+                      >
+                        <div className="font-bold text-lg">{slot.time}</div>
+                        <div className="text-sm mt-1">
+                          {slot.available ? (
+                            <span className="text-green-600">Mavjud</span>
+                          ) : (
+                            <span className="text-red-500">Band</span>
+                          )}
+                        </div>
+                        <div className="text-xs mt-1 font-medium">
+                          {parseInt(slot.time.split(':')[0]) >= 18 ? '$2,000' :
+                           parseInt(slot.time.split(':')[0]) >= 10 ? '$1,500' : '$1,200'}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Custom Time Selection */}
                 <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 border border-blue-200 mb-6">
                   <h5 className="font-semibold text-gray-900 mb-4 flex items-center">
                     <Clock className="w-5 h-5 mr-2 text-blue-600" />
-                    O'zingiz vaqt belgilang (To'yxona ish vaqti: 08:00 - 23:00)
+                    Yoki o'zingiz vaqt belgilang (To'yxona ish vaqti: 08:00 - 23:00)
                   </h5>
                   <div className="flex items-center space-x-4">
                     <div className="flex-1">
@@ -483,12 +527,12 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     <div className="text-center">
                       <div className="text-sm text-gray-600 mb-1">Tanlangan vaqt:</div>
                       <div className="font-bold text-xl text-blue-600">
-                        {customTime || '08:00'}
+                        {selectedTime || customTime || '08:00'}
                       </div>
                       <div className="text-sm font-medium text-green-600 mt-1">
                         Narx: {
-                          customTime && parseInt(customTime.split(':')[0]) >= 18 ? '$2,000' :
-                          customTime && parseInt(customTime.split(':')[0]) >= 10 ? '$1,500' : '$1,200'
+                          (selectedTime || customTime) && parseInt((selectedTime || customTime).split(':')[0]) >= 18 ? '$2,000' :
+                          (selectedTime || customTime) && parseInt((selectedTime || customTime).split(':')[0]) >= 10 ? '$1,500' : '$1,200'
                         }
                       </div>
                     </div>
