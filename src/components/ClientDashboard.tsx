@@ -508,15 +508,17 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
         <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {/* Calendar Header */}
           <div className="p-3 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-green-50">
-            <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-              <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
-              <div className="flex-1">
-                <h2 className="text-lg sm:text-2xl font-bold text-gray-900">Vaqt Band Qilish</h2>
-                <p className="text-sm sm:text-base text-gray-600 hidden sm:block">Kerakli sana va vaqtni tanlang</p>
+            <div className="relative">
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
+                <div className="flex-1">
+                  <h2 className="text-lg sm:text-2xl font-bold text-gray-900">Vaqt Band Qilish</h2>
+                  <p className="text-sm sm:text-base text-gray-600 hidden sm:block">Kerakli sana va vaqtni tanlang</p>
+                </div>
               </div>
               <button
                 onClick={() => setShowPricingModal(true)}
-                className="flex items-center justify-center space-x-2 px-2 py-2 sm:px-4 sm:py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all font-medium text-sm shadow-md"
+                className="absolute top-0 right-0 sm:static flex items-center justify-center space-x-2 px-2 py-2 sm:px-4 sm:py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all font-medium text-sm shadow-md"
               >
                 <Calculator className="w-4 h-4" />
                 <span className="hidden sm:inline">Narxlar va Ovqatlar</span>
