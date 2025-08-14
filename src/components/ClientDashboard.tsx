@@ -755,8 +755,20 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       </label>
                       <input
                         type="tel"
-                        value={clientPhone}
-                        onChange={(e) => setClientPhone(e.target.value)}
+                        value={clientPhone.startsWith('+998 ') ? clientPhone : `+998 ${clientPhone}`}
+                        onChange={(e) => {
+                          let value = e.target.value;
+                          if (value.startsWith('+998 ')) {
+                            value = value.slice(5);
+                          }
+                          setClientPhone(value);
+                        }}
+                        onFocus={(e) => {
+                          if (!clientPhone) {
+                            setClientPhone('');
+                            e.target.value = '+998 ';
+                          }
+                        }}
                         placeholder="+998 90 123 45 67"
                         className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                         required
