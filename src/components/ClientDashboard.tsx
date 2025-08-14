@@ -436,9 +436,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   };
 
   const handleBooking = () => {
-    // Telefon raqam validatsiyasi - kamida 9 ta raqam bo'lishi kerak
+    // Telefon raqam validatsiyasi
     const phoneNumbers = clientPhone.replace(/\s/g, '');
-    if (selectedDate && selectedTime && selectedEndTime && clientName.trim() && phoneNumbers.length >= 9) {
+    const validOperatorCodes = ['90', '91', '93', '94', '95', '97', '98', '99'];
+    const operatorCode = phoneNumbers.substring(0, 2);
+    
+    const isValidPhone = phoneNumbers.length === 9 && validOperatorCodes.includes(operatorCode);
+    
+    if (selectedDate && selectedTime && selectedEndTime && clientName.trim() && isValidPhone) {
       const formattedPhone = `+998 ${clientPhone}`;
       alert(`Band qilindi!\nSana: ${selectedDate}\nVaqt: ${selectedTime} - ${selectedEndTime}\nMijoz: ${clientName}\nTelefon: ${formattedPhone}`);
       setSelectedDate('');
@@ -456,8 +461,10 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
         alert('Iltimos vaqt oralig\'ini tanlang!');
       } else if (!clientName.trim()) {
         alert('Iltimos ism familiyangizni kiriting!');
-      } else if (phoneNumbers.length < 9) {
-        alert('Iltimos to\'liq telefon raqamini kiriting! (9 ta raqam)');
+      } else if (phoneNumbers.length !== 9) {
+        alert('Telefon raqam 9 ta raqamdan iborat bo\'lishi kerak!');
+      } else if (!validOperatorCodes.includes(operatorCode)) {
+        alert(`Noto'g'ri operator kodi! Foydalaning: ${validOperatorCodes.join(', ')}`);
       }
     }
   };
@@ -1256,10 +1263,26 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           type="tel"
                           value={clientPhone}
                           onChange={(e) => {
-                            // Faqat raqamlar va bo'shliqlarni qabul qilish
-                            const value = e.target.value.replace(/[^\d\s]/g, '');
-                            // Maksimum 9 ta raqam (90 123 45 67 formatida)
-                            if (value.replace(/\s/g, '').length <= 9) {
+                            let value = e.target.value.replace(/[^\d\s]/g, '');
+                            const numbersOnly = value.replace(/\s/g, '');
+                            
+                            // Maksimum 9 ta raqam
+                            if (numbersOnly.length <= 9) {
+                              // Avtomatik formatlash: XX XXX XX XX
+                              if (numbersOnly.length >= 2) {
+                                value = numbersOnly.substring(0, 2);
+                                if (numbersOnly.length >= 3) {
+                                  value += ' ' + numbersOnly.substring(2, 5);
+                                }
+                                if (numbersOnly.length >= 6) {
+                                  value += ' ' + numbersOnly.substring(5, 7);
+                                }
+                                if (numbersOnly.length >= 8) {
+                                  value += ' ' + numbersOnly.substring(7, 9);
+                                }
+                              } else {
+                                value = numbersOnly;
+                              }
                               setClientPhone(value);
                             }
                           }}
@@ -1275,9 +1298,10 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           required
                         />
                       </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        Format: 90 123 45 67
-                      </p>
+                      <div className="mt-1 text-xs text-gray-500">
+                        <p>Operator kodlari: 90, 91, 93, 94, 95, 97, 98, 99</p>
+                        <p>Format: 90 123 45 67</p>
+                      </div>
                     </div>
 
 
