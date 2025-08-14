@@ -430,6 +430,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         if (day.isCurrentMonth && day.available) {
                           setSelectedDate(day.fullDate);
                           setSelectedTime('');
+                          setSelectedEndTime('');
+                          setShowBookingModal(true);
                         }
                       }}
                       disabled={!day.isCurrentMonth || !day.available}
@@ -463,18 +465,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
           </div>
         </div>
 
-        {/* Open Booking Modal Button */}
-        {selectedDate && (
-          <div className="mt-8 text-center">
-            <button
-              onClick={() => setShowBookingModal(true)}
-              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-green-600 text-white font-bold text-lg rounded-xl shadow-lg hover:from-blue-700 hover:to-green-700 transform hover:scale-105 transition-all"
-            >
-              <Clock className="w-6 h-6 inline mr-3" />
-              Vaqt va Ma'lumotlarni To'ldiring
-            </button>
-          </div>
-        )}
+        
 
         {/* Booking Form Modal */}
         {showBookingModal && (
