@@ -35,6 +35,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   const [selectedMenuItems, setSelectedMenuItems] = useState<any[]>([]);
   const [guestCount, setGuestCount] = useState<number>(50);
   const [selectedPricing, setSelectedPricing] = useState<any>(null);
+  const [expandedCategory, setExpandedCategory] = useState<string>('');
 
   // Demo ma'lumotlar - real holatda server'dan keladi
   const availability: DayAvailability[] = [
@@ -750,50 +751,75 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     </h4>
 
                     <div className="space-y-3">
-                      {menuCategories.map(category => (
-                        <div key={category.id} className="bg-gray-50 rounded-lg p-3">
-                          <h5 className="font-medium text-gray-900 mb-2 text-sm">{category.name}</h5>
-                          <div className="space-y-2">
-                            {category.items.map(item => {
-                              const selected = selectedMenuItems.find(selected => selected.id === item.id);
-                              return (
-                                <div key={item.id} className="flex items-center justify-between">
-                                  <div className="flex-1">
-                                    <div className="text-xs font-medium text-gray-900">{item.name}</div>
-                                    <div className="text-xs text-gray-600">${item.price}</div>
-                                  </div>
-                                  <div className="flex items-center space-x-1">
-                                    {selected ? (
-                                      <>
-                                        <button
-                                          onClick={() => updateMenuItemQuantity(item.id, selected.quantity - 1)}
-                                          className="w-6 h-6 bg-red-500 text-white rounded text-xs hover:bg-red-600"
-                                        >
-                                          -
-                                        </button>
-                                        <span className="w-8 text-center text-xs">{selected.quantity}</span>
-                                        <button
-                                          onClick={() => updateMenuItemQuantity(item.id, selected.quantity + 1)}
-                                          className="w-6 h-6 bg-green-500 text-white rounded text-xs hover:bg-green-600"
-                                        >
-                                          +
-                                        </button>
-                                      </>
-                                    ) : (
-                                      <button
-                                        onClick={() => handleMenuItemToggle(item)}
-                                        className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
-                                      >
-                                        Qo'shish
-                                      </button>
-                                    )}
-                                  </div>
+                      {menuCategories.map(category => {
+                        const isExpanded = expandedCategory === category.id;
+                        
+                        return (
+                          <div key={category.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                            {/* Category Header - Clickable */}
+                            <button
+                              onClick={() => setExpandedCategory(isExpanded ? '' : category.id)}
+                              className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between text-left"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium text-gray-900 text-sm">{category.name}</span>
+                                <span className="text-xs text-gray-500">({category.items.length} mahsulot)</span>
+                              </div>
+                              <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </div>
+                            </button>
+
+                            {/* Category Items - Collapsible */}
+                            {isExpanded && (
+                              <div className="p-3 bg-white border-t border-gray-100">
+                                <div className="space-y-2">
+                                  {category.items.map(item => {
+                                    const selected = selectedMenuItems.find(selected => selected.id === item.id);
+                                    return (
+                                      <div key={item.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-b-0">
+                                        <div className="flex-1">
+                                          <div className="text-xs font-medium text-gray-900">{item.name}</div>
+                                          <div className="text-xs text-gray-600">${item.price}</div>
+                                          <div className="text-xs text-gray-500 mt-1">{item.description}</div>
+                                        </div>
+                                        <div className="flex items-center space-x-1 ml-2">
+                                          {selected ? (
+                                            <>
+                                              <button
+                                                onClick={() => updateMenuItemQuantity(item.id, selected.quantity - 1)}
+                                                className="w-6 h-6 bg-red-500 text-white rounded text-xs hover:bg-red-600 flex items-center justify-center"
+                                              >
+                                                -
+                                              </button>
+                                              <span className="w-8 text-center text-xs font-medium">{selected.quantity}</span>
+                                              <button
+                                                onClick={() => updateMenuItemQuantity(item.id, selected.quantity + 1)}
+                                                className="w-6 h-6 bg-green-500 text-white rounded text-xs hover:bg-green-600 flex items-center justify-center"
+                                              >
+                                                +
+                                              </button>
+                                            </>
+                                          ) : (
+                                            <button
+                                              onClick={() => handleMenuItemToggle(item)}
+                                              className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+                                            >
+                                              Qo'shish
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
                                 </div>
-                              );
-                            })}
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
