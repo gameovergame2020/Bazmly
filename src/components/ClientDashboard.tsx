@@ -630,26 +630,28 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                               Soat
                             </label>
                             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                              {Array.from({ length: (() => {
+                              {(() => {
                                 const [startHour] = tempStartTime.split(':').map(Number);
                                 const maxWorkHour = 23; // Ish vaqti 23:00 gacha
                                 const maxPossibleHours = maxWorkHour - startHour; // Ish vaqti doirasida qolgan soatlar
-                                return Math.min(8, maxPossibleHours); // Maksimum 8 soat yoki ish vaqti oxirigacha
-                              })() }, (_, i) => i + 1).map(hour => (
-                                <button
-                                  key={hour}
-                                  onClick={() => setSelectedHours(hour)}
-                                  className={`
-                                    px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all border-2
-                                    ${selectedHours === hour
-                                      ? 'bg-blue-600 text-white border-blue-600'
-                                      : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
-                                    }
-                                  `}
-                                >
-                                  {hour}
-                                </button>
-                              ))}
+                                const availableHours = Math.min(8, maxPossibleHours); // Maksimum 8 soat yoki ish vaqti oxirigacha
+                                
+                                return Array.from({ length: availableHours }, (_, i) => i + 1).map(hour => (
+                                  <button
+                                    key={hour}
+                                    onClick={() => setSelectedHours(hour)}
+                                    className={`
+                                      px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all border-2
+                                      ${selectedHours === hour
+                                        ? 'bg-blue-600 text-white border-blue-600'
+                                        : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
+                                      }
+                                    `}
+                                  >
+                                    {hour}
+                                  </button>
+                                ));
+                              })()}
                             </div>
                           </div>
 
@@ -659,21 +661,33 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                               Daqiqa
                             </label>
                             <div className="grid grid-cols-4 gap-2">
-                              {[0, 15, 30, 45].map(minute => (
-                                <button
-                                  key={minute}
-                                  onClick={() => setSelectedMinutes(minute)}
-                                  className={`
-                                    px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all border-2
-                                    ${selectedMinutes === minute
-                                      ? 'bg-blue-600 text-white border-blue-600'
-                                      : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
-                                    }
-                                  `}
-                                >
-                                  {minute === 0 ? '00' : minute}
-                                </button>
-                              ))}
+                              {(() => {
+                                const [startHour, startMin] = tempStartTime.split(':').map(Number);
+                                const startTotalMinutes = startHour * 60 + startMin;
+                                const maxWorkMinutes = 23 * 60; // 23:00 = 1380 daqiqa
+                                const availableMinutes = [0, 15, 30, 45];
+                                
+                                // Agar tanlangan soat bilan birga daqiqa qo'shilganda 23:00 dan oshmasligini tekshirish
+                                return availableMinutes.filter(minute => {
+                                  const totalDuration = selectedHours * 60 + minute;
+                                  const endTime = startTotalMinutes + totalDuration;
+                                  return endTime <= maxWorkMinutes;
+                                }).map(minute => (
+                                  <button
+                                    key={minute}
+                                    onClick={() => setSelectedMinutes(minute)}
+                                    className={`
+                                      px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all border-2
+                                      ${selectedMinutes === minute
+                                        ? 'bg-blue-600 text-white border-blue-600'
+                                        : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
+                                      }
+                                    `}
+                                  >
+                                    {minute === 0 ? '00' : minute}
+                                  </button>
+                                ));
+                              })()}
                             </div>
                           </div>
                         </div>
