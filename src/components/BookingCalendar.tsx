@@ -10,6 +10,7 @@ interface Booking {
   id: string;
   title: string;
   client: string;
+  clientPhone?: string;
   date: string;
   time: string;
   endTime: string;
@@ -17,48 +18,57 @@ interface Booking {
   venue: string;
   status: 'confirmed' | 'pending' | 'cancelled';
   type: 'wedding' | 'corporate' | 'birthday' | 'meeting' | 'other';
+  price?: number;
 }
 
 export const BookingCalendar: React.FC<BookingCalendarProps> = ({ user }) => {
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [showBookingDetailsModal, setShowBookingDetailsModal] = useState(false);
+  const [selectedBookingDetails, setSelectedBookingDetails] = useState<Booking | null>(null);
 
   const bookings: Booking[] = [
     {
       id: '1',
       title: 'Aziza & Bobur Wedding',
       client: 'Aziza Karimova',
+      clientPhone: '+998 90 123 45 67',
       date: '2025-01-18',
       time: '18:00',
       endTime: '23:00',
       guests: 200,
       venue: 'Grand Hall A',
       status: 'confirmed',
-      type: 'wedding'
+      type: 'wedding',
+      price: 2000
     },
     {
       id: '2',
       title: 'TechCorp Annual Meeting',
       client: 'TechCorp Ltd',
+      clientPhone: '+998 93 567 89 01',
       date: '2025-01-19',
       time: '14:00',
       endTime: '17:00',
       guests: 150,
       venue: 'Conference Center',
       status: 'pending',
-      type: 'corporate'
+      type: 'corporate',
+      price: 900
     },
     {
       id: '3',
       title: 'Olim\'s 50th Birthday',
       client: 'Olim Karimov',
+      clientPhone: '+998 97 987 65 43',
       date: '2025-01-20',
       time: '19:00',
       endTime: '22:00',
       guests: 80,
       venue: 'Garden Terrace',
       status: 'confirmed',
-      type: 'birthday'
+      type: 'birthday',
+      price: 600
     }
   ];
 
@@ -221,7 +231,11 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({ user }) => {
                       {dayBookings.slice(0, 2).map(booking => (
                         <div
                           key={booking.id}
-                          className={`p-1 rounded text-xs ${getTypeColor(booking.type)}`}
+                          onClick={() => {
+                            setSelectedBookingDetails(booking);
+                            setShowBookingDetailsModal(true);
+                          }}
+                          className={`p-1 rounded text-xs cursor-pointer hover:opacity-80 transition-opacity ${getTypeColor(booking.type)}`}
                         >
                           <div className="font-medium truncate">{booking.title}</div>
                           <div className="text-gray-600">{booking.time}</div>
@@ -280,6 +294,147 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({ user }) => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Booking Details Modal */}
+      {showBookingDetailsModal && selectedBookingDetails && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white w-full h-full sm:h-auto sm:max-w-2xl sm:rounded-xl shadow-2xl sm:max-h-[95vh] overflow-y-auto">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between sticky top-0 z-10">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center">
+                  <Calendar className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-blue-600 flex-shrink-0" />
+                  <span className="truncate">Rezervatsiya Tafsilotlari</span>
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  setShowBookingDetailsModal(false);
+                  setSelectedBookingDetails(null);
+                }}
+                className="text-gray-500 hover:text-gray-700 text-xl sm:text-2xl p-1 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 ml-2"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-6">
+              <div className="space-y-6">
+                {/* Event Details */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-bold text-lg text-gray-900 mb-3">{selectedBookingDetails.title}</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Mijoz:</span>
+                        <span className="font-semibold text-gray-800">{selectedBookingDetails.client}</span>
+                      </div>
+                      {selectedBookingDetails.clientPhone && (
+                        <div className="flex justify-between">
+                          <span className="text-sm font-medium text-gray-600">Telefon:</span>
+                          <span className="font-semibold text-gray-800">{selectedBookingDetails.clientPhone}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Sana:</span>
+                        <span className="font-semibold text-gray-800">
+                          {new Date(selectedBookingDetails.date).toLocaleDateString('uz-UZ', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Vaqt:</span>
+                        <span className="font-semibold text-gray-800">
+                          {selectedBookingDetails.time} - {selectedBookingDetails.endTime}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Mehmonlar:</span>
+                        <span className="font-semibold text-gray-800">{selectedBookingDetails.guests} kishi</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Zal:</span>
+                        <span className="font-semibold text-gray-800">{selectedBookingDetails.venue}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-gray-600">Holat:</span>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(selectedBookingDetails.status)}`}>
+                          {selectedBookingDetails.status === 'confirmed' ? 'Tasdiqlangan' :
+                           selectedBookingDetails.status === 'pending' ? 'Kutilmoqda' :
+                           'Bekor qilingan'}
+                        </span>
+                      </div>
+                      {selectedBookingDetails.price && (
+                        <div className="flex justify-between">
+                          <span className="text-sm font-medium text-gray-600">Narxi:</span>
+                          <span className="font-bold text-lg text-green-600">${selectedBookingDetails.price}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Duration */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h5 className="font-medium text-blue-800 mb-2">Davomiylik Ma'lumoti</h5>
+                  <div className="text-sm text-blue-700">
+                    {(() => {
+                      const [startHour, startMin] = selectedBookingDetails.time.split(':').map(Number);
+                      const [endHour, endMin] = selectedBookingDetails.endTime.split(':').map(Number);
+                      const totalMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+                      const hours = Math.floor(totalMinutes / 60);
+                      const minutes = totalMinutes % 60;
+                      return hours > 0 && minutes > 0
+                        ? `${hours} soat ${minutes} daqiqa`
+                        : hours > 0
+                          ? `${hours} soat`
+                          : `${minutes} daqiqa`;
+                    })()}
+                  </div>
+                </div>
+
+                {/* Event Type */}
+                <div className={`border-l-4 pl-4 py-2 ${
+                  selectedBookingDetails.type === 'wedding' ? 'border-l-pink-400 bg-pink-50' :
+                  selectedBookingDetails.type === 'corporate' ? 'border-l-blue-400 bg-blue-50' :
+                  selectedBookingDetails.type === 'birthday' ? 'border-l-green-400 bg-green-50' :
+                  selectedBookingDetails.type === 'meeting' ? 'border-l-purple-400 bg-purple-50' :
+                  'border-l-gray-400 bg-gray-50'
+                }`}>
+                  <h5 className="font-medium text-gray-800 mb-1">Tadbir Turi</h5>
+                  <div className="text-sm text-gray-600">
+                    {selectedBookingDetails.type === 'wedding' ? 'To\'y' :
+                     selectedBookingDetails.type === 'corporate' ? 'Korporativ' :
+                     selectedBookingDetails.type === 'birthday' ? 'Tug\'ilgan kun' :
+                     selectedBookingDetails.type === 'meeting' ? 'Uchrashuv' :
+                     'Boshqa'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex justify-between items-center sticky bottom-0 sm:static">
+              <div className="text-sm text-gray-600">
+                ID: {selectedBookingDetails.id}
+              </div>
+              <button
+                onClick={() => {
+                  setShowBookingDetailsModal(false);
+                  setSelectedBookingDetails(null);
+                }}
+                className="px-4 sm:px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+              >
+                Yopish
+              </button>
+            </div>
           </div>
         </div>
       )}
