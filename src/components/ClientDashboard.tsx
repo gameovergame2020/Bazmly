@@ -362,6 +362,12 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
         }
       }
 
+      // BookedTimeSlots ga asosan band qilingan kunlarni tekshirish
+      const hasBooking = bookedTimeSlots.some(slot => slot.date === dateString);
+      if (hasBooking) {
+        isAvailable = false; // Band qilingan kunni mavjud emas deb belgilash
+      }
+
       days.push({
         date: day,
         isCurrentMonth: true,
@@ -688,6 +694,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           if (dayBookings.length > 0) {
                             setSelectedBookingDetails(dayBookings[0]);
                             setShowBookingDetailsModal(true);
+                          } else {
+                            // Agar demo ma'lumotlarda yo'q bo'lsa, umuman band qilingan kunni ko'rsatish
+                            alert(`${day.fullDate} sanasi band qilingan, lekin tafsilotlar mavjud emas.`);
                           }
                         }
                       }}
