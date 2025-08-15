@@ -1469,51 +1469,60 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
         {/* Booking Details Modal */}
         {showBookingDetailsModal && selectedBookingDetails && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-            <div className="bg-white w-full h-full sm:h-auto sm:max-w-xl sm:rounded-xl shadow-2xl sm:max-h-[95vh] overflow-y-auto">
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between sticky top-0 z-10">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-0 sm:p-4">
+            <div className="bg-white w-full h-full sm:h-auto sm:max-w-4xl sm:rounded-xl shadow-2xl sm:max-h-[95vh] overflow-y-auto">
+              {/* Modal Header - Sticky */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between sticky top-0 z-20 shadow-sm">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center">
-                    <Star className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-yellow-500 flex-shrink-0" />
-                    <span className="truncate">Band Qilingan Vaqt Tafsilotlari</span>
+                  <h3 className="text-base sm:text-xl font-bold text-gray-900 flex items-center">
+                    <Star className="w-4 h-4 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-yellow-500 flex-shrink-0" />
+                    <span className="truncate text-sm sm:text-base">Band Qilingan Vaqt Tafsilotlari</span>
                   </h3>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">
+                    {new Date(selectedBookingDetails.date).toLocaleDateString('uz-UZ', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long'
+                    })} kuniga oid ma'lumotlar
+                  </p>
                 </div>
                 <button
                   onClick={() => {
                     setShowBookingDetailsModal(false);
                     setSelectedBookingDetails(null);
                   }}
-                  className="text-gray-500 hover:text-gray-700 text-xl sm:text-2xl p-1 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 ml-2"
+                  className="text-gray-500 hover:text-gray-700 text-lg sm:text-2xl p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 ml-2"
                 >
                   ✕
                 </button>
               </div>
 
-              <div className="p-4 sm:p-6">
-                <div className="space-y-6">
+              {/* Modal Content - Scrollable */}
+              <div className="p-3 sm:p-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Buyurtmachi Ma'lumotlari */}
-                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                    <h4 className="font-bold text-blue-900 mb-3 flex items-center">
-                      <Users className="w-4 h-4 mr-2" />
+                  <div className="bg-blue-50 rounded-lg p-3 sm:p-4 border border-blue-200">
+                    <h4 className="font-bold text-blue-900 mb-3 flex items-center text-sm sm:text-base">
+                      <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                       Kim Band Qilgan?
                     </h4>
                     <div className="space-y-3">
-                      <div className="bg-white rounded-lg p-3 border border-blue-100">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            <Users className="w-5 h-5 text-blue-600" />
+                      <div className="bg-white rounded-lg p-2 sm:p-3 border border-blue-100">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                           </div>
-                          <div className="flex-1">
-                            <div className="font-bold text-blue-900 text-lg">{selectedBookingDetails.clientName}</div>
-                            <div className="text-sm text-blue-700">{selectedBookingDetails.clientPhone}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-blue-900 text-sm sm:text-lg truncate">{selectedBookingDetails.clientName}</div>
+                            <div className="text-xs sm:text-sm text-blue-700">{selectedBookingDetails.clientPhone}</div>
                           </div>
                         </div>
                       </div>
 
                       {/* Buyurtma maqsadi */}
-                      <div className="bg-white rounded-lg p-3 border border-blue-100">
+                      <div className="bg-white rounded-lg p-2 sm:p-3 border border-blue-100">
                         <div className="text-xs font-medium text-blue-700 mb-1">Nima uchun band qilgan:</div>
-                        <div className="font-semibold text-blue-900 text-base">
+                        <div className="font-semibold text-blue-900 text-sm sm:text-base">
                           {selectedBookingDetails.id.includes('demo') ? 
                             'To\'y marosimi uchun' : 
                             selectedBookingDetails.clientName === 'Alijon Valiev' ? 'Nikoh to\'yi va osh berish' :
@@ -1536,51 +1545,51 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                   </div>
 
                   {/* Vaqt Ma'lumotlari */}
-                  <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                    <h4 className="font-bold text-green-900 mb-3 flex items-center">
-                      <Clock className="w-4 h-4 mr-2" />
+                  <div className="bg-green-50 rounded-lg p-3 sm:p-4 border border-green-200">
+                    <h4 className="font-bold text-green-900 mb-3 flex items-center text-sm sm:text-base">
+                      <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                       Vaqt Tafsilotlari
                     </h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-green-700">Sana:</span>
-                        <span className="font-semibold text-green-900">
+                    <div className="space-y-2 sm:space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-white rounded-lg p-2 sm:p-3 border border-green-100">
+                        <span className="text-xs sm:text-sm font-medium text-green-700">Sana:</span>
+                        <span className="font-semibold text-green-900 text-sm sm:text-base mt-1 sm:mt-0">
                           {new Date(selectedBookingDetails.date).toLocaleDateString('uz-UZ', {
-                            weekday: 'long',
+                            weekday: 'short',
                             day: 'numeric',
-                            month: 'long',
+                            month: 'short',
                             year: 'numeric'
                           })}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-green-700">Vaqt Oralig'i:</span>
-                        <span className="font-bold text-lg text-green-900">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-white rounded-lg p-2 sm:p-3 border border-green-100">
+                        <span className="text-xs sm:text-sm font-medium text-green-700">Vaqt Oralig'i:</span>
+                        <span className="font-bold text-base sm:text-lg text-green-900 mt-1 sm:mt-0">
                           {selectedBookingDetails.time} - {selectedBookingDetails.endTime}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-green-700">Davomiylik:</span>
-                        <span className="font-semibold text-green-900">{selectedBookingDetails.duration}</span>
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-white rounded-lg p-2 sm:p-3 border border-green-100">
+                        <span className="text-xs sm:text-sm font-medium text-green-700">Davomiylik:</span>
+                        <span className="font-semibold text-green-900 text-sm sm:text-base mt-1 sm:mt-0">{selectedBookingDetails.duration}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Kun davomidagi Barcha Soatlar */}
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <h4 className="font-bold text-gray-900 mb-3 flex items-center">
-                      <Clock className="w-4 h-4 mr-2" />
+                  <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                    <h4 className="font-bold text-gray-900 mb-3 flex items-center text-sm sm:text-base">
+                      <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                       {new Date(selectedBookingDetails.date).toLocaleDateString('uz-UZ', {
                         day: 'numeric',
                         month: 'long'
-                      })} kuni - Barcha Soatlar Holati
+                      })} - Barcha Soatlar
                     </h4>
 
-                    <p className="text-sm text-gray-600 mb-4">
-                      To'yxona ish vaqti: 08:00 dan 23:00 gacha. Quyida har bir soat uchun ma'lumot:
+                    <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
+                      To'yxona ish vaqti: 08:00-23:00. Har bir soat holati:
                     </p>
 
-                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-3 sm:mb-4">
                       {Array.from({ length: 15 }, (_, i) => {
                         const hour = i + 8; // 8:00 dan 22:00 gacha
                         const timeStr = `${hour.toString().padStart(2, '0')}:00`;
@@ -1607,7 +1616,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         return (
                           <div 
                             key={hour}
-                            className={`rounded-lg p-2 text-center border transition-all cursor-pointer hover:shadow-md ${
+                            className={`rounded-lg p-1.5 sm:p-2 text-center border-2 transition-all cursor-pointer hover:shadow-md min-h-16 sm:min-h-20 flex flex-col justify-center ${
                               hourStatus === 'current' ? 'bg-blue-100 border-blue-300' :
                               hourStatus === 'other' ? 'bg-red-100 border-red-300' :
                               'bg-green-50 border-green-300 hover:bg-green-100'
@@ -1620,7 +1629,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                               }
                             }}
                           >
-                            <div className={`text-sm font-bold ${
+                            <div className={`text-xs sm:text-sm font-bold ${
                               hourStatus === 'current' ? 'text-blue-800' :
                               hourStatus === 'other' ? 'text-red-800' :
                               'text-green-800'
@@ -1629,14 +1638,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             </div>
 
                             {hourStatus === 'current' && (
-                              <div className="text-xs text-blue-600 mt-1 font-medium">
-                                {selectedBookingDetails.clientName}
+                              <div className="text-xs text-blue-600 mt-1 font-medium truncate">
+                                {selectedBookingDetails.clientName.split(' ')[0]}
                               </div>
                             )}
 
                             {hourStatus === 'other' && otherBooking && (
-                              <div className="text-xs text-red-600 mt-1 font-medium">
-                                {otherBooking.clientName}
+                              <div className="text-xs text-red-600 mt-1 font-medium truncate">
+                                {otherBooking.clientName.split(' ')[0]}
                               </div>
                             )}
 
@@ -1654,7 +1663,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
                             {hourStatus === 'other' && (
                               <div className="text-xs text-red-500 mt-1">
-                                Bosilsa ko'rish
+                                Ko'rish
                               </div>
                             )}
                           </div>
@@ -1663,32 +1672,32 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     </div>
 
                     {/* Legend */}
-                    <div className="flex items-center justify-center space-x-4 text-xs">
+                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs">
                       <div className="flex items-center space-x-1">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <span className="text-gray-700">Hozirgi buyurtma</span>
+                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-500 rounded-full"></div>
+                        <span className="text-gray-700">Hozirgi</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded-full"></div>
                         <span className="text-gray-700">Boshqa buyurtma</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
                         <span className="text-gray-700">Mavjud</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Band Qilish Maqsadi - Batafsil */}
-                  <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                    <h4 className="font-bold text-purple-900 mb-3 flex items-center">
-                      <Star className="w-4 h-4 mr-2" />
-                      Nima Uchun Band Qilingan - Batafsil
+                  <div className="bg-purple-50 rounded-lg p-3 sm:p-4 border border-purple-200">
+                    <h4 className="font-bold text-purple-900 mb-3 flex items-center text-sm sm:text-base">
+                      <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                      Batafsil Ma'lumot
                     </h4>
                     <div className="space-y-3">
-                      <div className="bg-white rounded-lg p-3 border border-purple-100">
-                        <div className="text-sm font-medium text-purple-800 mb-2">Tadbir Turi:</div>
-                        <div className="font-bold text-purple-900">
+                      <div className="bg-white rounded-lg p-2 sm:p-3 border border-purple-100">
+                        <div className="text-xs sm:text-sm font-medium text-purple-800 mb-1 sm:mb-2">Tadbir Turi:</div>
+                        <div className="font-bold text-purple-900 text-sm sm:text-base">
                           {selectedBookingDetails.id.includes('demo') ? 
                             'To\'y Marosimi va Katta Ziyofat' : 
                             selectedBookingDetails.clientName === 'Alijon Valiev' ? 'Nikoh To\'yi va Milliy Osh Berish' :
@@ -1699,9 +1708,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         </div>
                       </div>
 
-                      <div className="bg-white rounded-lg p-3 border border-purple-100">
-                        <div className="text-sm font-medium text-purple-800 mb-2">Kutilayotgan Mehmonlar:</div>
-                        <div className="font-bold text-purple-900">
+                      <div className="bg-white rounded-lg p-2 sm:p-3 border border-purple-100">
+                        <div className="text-xs sm:text-sm font-medium text-purple-800 mb-1 sm:mb-2">Kutilayotgan Mehmonlar:</div>
+                        <div className="font-bold text-purple-900 text-sm sm:text-base">
                           {selectedBookingDetails.id.includes('demo') ? 
                             '150-200 kishi (katta to\'y)' :
                             selectedBookingDetails.clientName === 'Alijon Valiev' ? '120 kishi (nikoh marosimi)' :
@@ -1712,9 +1721,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         </div>
                       </div>
 
-                      <div className="bg-white rounded-lg p-3 border border-purple-100">
-                        <div className="text-sm font-medium text-purple-800 mb-2">Maxsus Talablar:</div>
-                        <div className="text-sm text-purple-700">
+                      <div className="bg-white rounded-lg p-2 sm:p-3 border border-purple-100">
+                        <div className="text-xs sm:text-sm font-medium text-purple-800 mb-2">Maxsus Talablar:</div>
+                        <div className="text-xs sm:text-sm text-purple-700 space-y-1">
                           {(() => {
                             let requirements = '';
                             if (selectedBookingDetails.id.includes('demo')) {
@@ -1739,46 +1748,50 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                   </div>
 
                   {/* Qo'shimcha Ma'lumotlar */}
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <h4 className="font-bold text-gray-900 mb-3 flex items-center">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      Band Qilish Tafsilotlari
+                  <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                    <h4 className="font-bold text-gray-900 mb-3 flex items-center text-sm sm:text-base">
+                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                      Rezervatsiya Tafsilotlari
                     </h4>
-                    <div className="space-y-2 text-sm text-gray-700">
-                      <div className="flex justify-between">
-                        <span>Buyurtmachi:</span>
-                        <span className="font-bold text-gray-900">{selectedBookingDetails.clientName}</span>
+                    <div className="space-y-2 text-xs sm:text-sm text-gray-700">
+                      <div className="flex flex-col sm:flex-row sm:justify-between bg-white rounded p-2 border border-gray-100">
+                        <span className="font-medium text-gray-600">Buyurtmachi:</span>
+                        <span className="font-bold text-gray-900 mt-1 sm:mt-0">{selectedBookingDetails.clientName}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Rezervatsiya ID:</span>
-                        <span className="font-mono font-medium">{selectedBookingDetails.id}</span>
+                      <div className="flex flex-col sm:flex-row sm:justify-between bg-white rounded p-2 border border-gray-100">
+                        <span className="font-medium text-gray-600">ID:</span>
+                        <span className="font-mono font-medium mt-1 sm:mt-0">{selectedBookingDetails.id}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Band qilingan vaqt:</span>
-                        <span className="font-bold text-red-600">{selectedBookingDetails.time} - {selectedBookingDetails.endTime}</span>
+                      <div className="flex flex-col sm:flex-row sm:justify-between bg-white rounded p-2 border border-gray-100">
+                        <span className="font-medium text-gray-600">Vaqt:</span>
+                        <span className="font-bold text-red-600 mt-1 sm:mt-0">{selectedBookingDetails.time} - {selectedBookingDetails.endTime}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Holati:</span>
-                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                      <div className="flex flex-col sm:flex-row sm:justify-between bg-white rounded p-2 border border-gray-100">
+                        <span className="font-medium text-gray-600">Holati:</span>
+                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium inline-block mt-1 sm:mt-0">
                           Tasdiqlangan ✓
                         </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Yaratilgan vaqt:</span>
-                        <span>{new Date().toLocaleDateString('uz-UZ')} {new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}</span>
+                      <div className="flex flex-col sm:flex-row sm:justify-between bg-white rounded p-2 border border-gray-100">
+                        <span className="font-medium text-gray-600">Yaratilgan:</span>
+                        <span className="text-xs mt-1 sm:mt-0">{new Date().toLocaleDateString('uz-UZ')} {new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex justify-end sticky bottom-0 sm:static">
+              {/* Modal Footer - Sticky */}
+              <div className="bg-gray-50 px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex justify-between sm:justify-end items-center sticky bottom-0 z-20 shadow-lg sm:shadow-none">
+                <div className="text-xs text-gray-600 sm:hidden">
+                  {selectedBookingDetails.time} - {selectedBookingDetails.endTime}
+                </div>
                 <button
                   onClick={() => {
                     setShowBookingDetailsModal(false);
                     setSelectedBookingDetails(null);
                   }}
-                  className="px-4 sm:px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                  className="px-4 sm:px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
                 >
                   Yopish
                 </button>
