@@ -1330,10 +1330,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       </div>
                     </div>
                   </div>
-                )}
-
-
-              </div>
+                </div>
 
               {/* Right side - Client Form */}
               <div className="space-y-4 sm:space-y-6">
@@ -1467,23 +1464,24 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
           </div>
         )}
 
-        {/* Booking Details Modal */}
+        {/* Booking Details Modal - Qayta tartibga solingan */}
         {showBookingDetailsModal && selectedBookingDetails && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-0 sm:p-4">
-            <div className="bg-white w-full h-full sm:h-auto sm:max-w-4xl sm:rounded-xl shadow-2xl sm:max-h-[95vh] overflow-y-auto">
+            <div className="bg-white w-full h-full sm:h-auto sm:max-w-5xl sm:rounded-xl shadow-2xl sm:max-h-[95vh] overflow-y-auto">
               {/* Modal Header - Sticky */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+              <div className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between sticky top-0 z-20 shadow-sm">
                 <div className="flex-1 min-w-0">
                   <h3 className="text-base sm:text-xl font-bold text-gray-900 flex items-center">
-                    <Star className="w-4 h-4 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-yellow-500 flex-shrink-0" />
-                    <span className="truncate text-sm sm:text-base">Band Qilingan Vaqt Tafsilotlari</span>
+                    <Calendar className="w-4 h-4 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-blue-600 flex-shrink-0" />
+                    <span className="truncate text-sm sm:text-base">To'yxona Band Qilish Ma'lumotlari</span>
                   </h3>
                   <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">
                     {new Date(selectedBookingDetails.date).toLocaleDateString('uz-UZ', {
                       weekday: 'long',
                       day: 'numeric',
-                      month: 'long'
-                    })} kuniga oid ma'lumotlar
+                      month: 'long',
+                      year: 'numeric'
+                    })} - Batafsil Ma'lumotlar
                   </p>
                 </div>
                 <button
@@ -1499,109 +1497,96 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
               {/* Modal Content - Scrollable */}
               <div className="p-3 sm:p-6">
-                <div className="space-y-4 sm:space-y-6">
-                  {/* Buyurtmachi Ma'lumotlari */}
-                  <div className="bg-blue-50 rounded-lg p-3 sm:p-4 border border-blue-200">
-                    <h4 className="font-bold text-blue-900 mb-3 flex items-center text-sm sm:text-base">
-                      <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                      Kim Band Qilgan?
-                    </h4>
-                    <div className="space-y-3">
-                      <div className="bg-white rounded-lg p-2 sm:p-3 border border-blue-100">
-                        <div className="flex items-center space-x-2 sm:space-x-3">
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                <div className="space-y-4 sm:space-y-5">
+
+                  {/* 1. ENG MUHIM - Vaqt va Buyurtmachi Ma'lumotlari */}
+                  <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-4 sm:p-6 border-2 border-blue-200 shadow-md">
+                    <div className="text-center mb-4">
+                      <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+                        🎉 {selectedBookingDetails.clientName}
+                      </h4>
+                      <div className="text-sm text-gray-600 mb-3">
+                        📞 {selectedBookingDetails.clientPhone}
+                      </div>
+                    </div>
+
+                    {/* Vaqt kartasi */}
+                    <div className="bg-white rounded-lg p-4 border-2 border-green-300 shadow-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                        <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                          <div className="text-xs text-green-600 font-medium mb-1">📅 SANA</div>
+                          <div className="font-bold text-green-900">
+                            {new Date(selectedBookingDetails.date).toLocaleDateString('uz-UZ', {
+                              day: '2-digit',
+                              month: 'short'
+                            })}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-bold text-blue-900 text-sm sm:text-lg truncate">{selectedBookingDetails.clientName}</div>
-                            <div className="text-xs sm:text-sm text-blue-700">{selectedBookingDetails.clientPhone}</div>
+                        </div>
+                        <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                          <div className="text-xs text-blue-600 font-medium mb-1">⏰ VAQT</div>
+                          <div className="font-bold text-blue-900 text-sm sm:text-base">
+                            {selectedBookingDetails.time} - {selectedBookingDetails.endTime}
                           </div>
+                        </div>
+                        <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+                          <div className="text-xs text-purple-600 font-medium mb-1">⏱️ DAVOMIYLIK</div>
+                          <div className="font-bold text-purple-900">{selectedBookingDetails.duration}</div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Buyurtma maqsadi */}
-                      <div className="bg-white rounded-lg p-2 sm:p-3 border border-blue-100">
-                        <div className="text-xs font-medium text-blue-700 mb-1">Nima uchun band qilgan:</div>
-                        <div className="font-semibold text-blue-900 text-sm sm:text-base">
+                    {/* Nima uchun band qilgan */}
+                    <div className="mt-4 bg-white rounded-lg p-3 border border-gray-200">
+                      <div className="text-center">
+                        <div className="text-xs font-medium text-gray-600 mb-2">🎯 NIMA UCHUN BAND QILGAN</div>
+                        <div className="font-bold text-gray-900 text-sm sm:text-lg">
                           {selectedBookingDetails.id.includes('demo') ? 
-                            'To\'y marosimi uchun' : 
-                            selectedBookingDetails.clientName === 'Alijon Valiev' ? 'Nikoh to\'yi va osh berish' :
-                            selectedBookingDetails.clientName === 'Dilfuza Karimova' ? 'Tug\'ilgan kun nishonlash' :
-                            selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 'Oilaviy bayram va mehmonlar qabul qilish' :
-                            'To\'y marosimi'
+                            '👰‍♀️ To\'y Marosimi va Katta Ziyofat' : 
+                            selectedBookingDetails.clientName === 'Alijon Valiev' ? '💒 Nikoh To\'yi va Osh Berish' :
+                            selectedBookingDetails.clientName === 'Dilfuza Karimova' ? '🎂 Tug\'ilgan Kun Nishonlash' :
+                            selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? '🏠 Oilaviy Bayram va Mehmonlar' :
+                            '🎉 To\'y Marosimi'
                           }
                         </div>
-                        <div className="text-xs text-blue-600 mt-1">
-                          {selectedBookingDetails.id.includes('demo') ? 
-                            'Taxminan 150-200 mehmon kutilmoqda' :
-                            selectedBookingDetails.clientName === 'Alijon Valiev' ? 'Nikoh marosimi, milliy taomlar, 120 mehmon' :
-                            selectedBookingDetails.clientName === 'Dilfuza Karimova' ? '50 yoshga to\'lish munosabati, 80 mehmon' :
-                            selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 'Oila a\'zosi muvaffaqiyati, 150 mehmon' :
-                            'Taxminan 100-150 mehmon'
+                        <div className="text-xs text-gray-500 mt-1">
+                          👥 {selectedBookingDetails.id.includes('demo') ? 
+                            '150-200 mehmon kutilmoqda' :
+                            selectedBookingDetails.clientName === 'Alijon Valiev' ? '120 mehmon (nikoh marosimi)' :
+                            selectedBookingDetails.clientName === 'Dilfuza Karimova' ? '80 mehmon (yubiley)' :
+                            selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? '150 mehmon (oilaviy bayram)' :
+                            '100-150 mehmon'
                           }
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Vaqt Ma'lumotlari */}
-                  <div className="bg-green-50 rounded-lg p-3 sm:p-4 border border-green-200">
-                    <h4 className="font-bold text-green-900 mb-3 flex items-center text-sm sm:text-base">
-                      <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                      Vaqt Tafsilotlari
-                    </h4>
-                    <div className="space-y-2 sm:space-y-3">
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-white rounded-lg p-2 sm:p-3 border border-green-100">
-                        <span className="text-xs sm:text-sm font-medium text-green-700">Sana:</span>
-                        <span className="font-semibold text-green-900 text-sm sm:text-base mt-1 sm:mt-0">
-                          {new Date(selectedBookingDetails.date).toLocaleDateString('uz-UZ', {
-                            weekday: 'short',
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric'
-                          })}
-                        </span>
-                      </div>
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-white rounded-lg p-2 sm:p-3 border border-green-100">
-                        <span className="text-xs sm:text-sm font-medium text-green-700">Vaqt Oralig'i:</span>
-                        <span className="font-bold text-base sm:text-lg text-green-900 mt-1 sm:mt-0">
-                          {selectedBookingDetails.time} - {selectedBookingDetails.endTime}
-                        </span>
-                      </div>
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-white rounded-lg p-2 sm:p-3 border border-green-100">
-                        <span className="text-xs sm:text-sm font-medium text-green-700">Davomiylik:</span>
-                        <span className="font-semibold text-green-900 text-sm sm:text-base mt-1 sm:mt-0">{selectedBookingDetails.duration}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Kun davomidagi Barcha Soatlar */}
-                  <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
-                    <h4 className="font-bold text-gray-900 mb-3 flex items-center text-sm sm:text-base">
-                      <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                      {new Date(selectedBookingDetails.date).toLocaleDateString('uz-UZ', {
+                  {/* 2. SHU KUNDAGI BARCHA VAQTLAR - Eng kerakli */}
+                  <div className="bg-white rounded-xl p-4 border border-gray-300 shadow-md">
+                    <h4 className="font-bold text-gray-900 mb-4 flex items-center justify-center text-base sm:text-lg">
+                      📊 {new Date(selectedBookingDetails.date).toLocaleDateString('uz-UZ', {
                         day: 'numeric',
                         month: 'long'
-                      })} - Barcha Soatlar
+                      })} - Kunlik Vaqt Jadvali
                     </h4>
 
-                    <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
-                      To'yxona ish vaqti: 08:00-23:00. Har bir soat holati:
-                    </p>
+                    <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                      <p className="text-xs sm:text-sm text-center text-gray-600">
+                        🏢 To'yxona ish vaqti: 08:00 - 23:00 | Har bir soatning holati:
+                      </p>
+                    </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-3 sm:mb-4">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-4">
                       {Array.from({ length: 15 }, (_, i) => {
-                        const hour = i + 8; // 8:00 dan 22:00 gacha
+                        const hour = i + 8;
                         const timeStr = `${hour.toString().padStart(2, '0')}:00`;
 
-                        // Hozirgi buyurtmada bu soat band qilinganmi?
                         const isCurrentBookingHour = (() => {
                           const [startHour] = selectedBookingDetails.time.split(':').map(Number);
                           const [endHour] = selectedBookingDetails.endTime.split(':').map(Number);
                           return hour >= startHour && hour < endHour;
                         })();
 
-                        // Boshqa buyurtmalarda bu soat band qilinganmi?
                         const otherBooking = bookedTimeSlots.find(slot => {
                           if (slot.date !== selectedBookingDetails.date || slot.id === selectedBookingDetails.id) return false;
                           const [startHour] = slot.time.split(':').map(Number);
@@ -1609,27 +1594,26 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           return hour >= startHour && hour < endHour;
                         });
 
-                        // Soat holati
                         const hourStatus = isCurrentBookingHour ? 'current' : 
                                          otherBooking ? 'other' : 'available';
 
                         return (
                           <div 
                             key={hour}
-                            className={`rounded-lg p-1.5 sm:p-2 text-center border-2 transition-all cursor-pointer hover:shadow-md min-h-16 sm:min-h-20 flex flex-col justify-center ${
-                              hourStatus === 'current' ? 'bg-blue-100 border-blue-300' :
-                              hourStatus === 'other' ? 'bg-red-100 border-red-300' :
+                            className={`rounded-lg p-2 text-center border-2 transition-all cursor-pointer hover:shadow-md min-h-20 flex flex-col justify-center ${
+                              hourStatus === 'current' ? 'bg-blue-100 border-blue-400 shadow-sm' :
+                              hourStatus === 'other' ? 'bg-red-100 border-red-400 shadow-sm' :
                               'bg-green-50 border-green-300 hover:bg-green-100'
                             }`}
                             onClick={() => {
                               if (hourStatus === 'other' && otherBooking) {
                                 setSelectedBookingDetails(otherBooking);
                               } else if (hourStatus === 'available') {
-                                alert(`${timeStr} vaqti mavjud. Bu vaqtni band qilish uchun asosiy sahifadan buyurtma bering.`);
+                                alert(`✅ ${timeStr} vaqti mavjud!\n\n📝 Bu vaqtni band qilish uchun asosiy sahifadagi kalendarga o'ting va buyurtma bering.`);
                               }
                             }}
                           >
-                            <div className={`text-xs sm:text-sm font-bold ${
+                            <div className={`text-sm font-bold mb-1 ${
                               hourStatus === 'current' ? 'text-blue-800' :
                               hourStatus === 'other' ? 'text-red-800' :
                               'text-green-800'
@@ -1638,162 +1622,174 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             </div>
 
                             {hourStatus === 'current' && (
-                              <div className="text-xs text-blue-600 mt-1 font-medium truncate">
-                                {selectedBookingDetails.clientName.split(' ')[0]}
-                              </div>
+                              <>
+                                <div className="text-xs text-blue-700 font-medium">👤 {selectedBookingDetails.clientName.split(' ')[0]}</div>
+                                <div className="w-3 h-3 bg-blue-500 rounded-full mx-auto"></div>
+                              </>
                             )}
 
                             {hourStatus === 'other' && otherBooking && (
-                              <div className="text-xs text-red-600 mt-1 font-medium truncate">
-                                {otherBooking.clientName.split(' ')[0]}
-                              </div>
+                              <>
+                                <div className="text-xs text-red-700 font-medium">👤 {otherBooking.clientName.split(' ')[0]}</div>
+                                <div className="w-3 h-3 bg-red-500 rounded-full mx-auto"></div>
+                                <div className="text-xs text-red-600 font-medium mt-1">👆 Ko'rish</div>
+                              </>
                             )}
 
                             {hourStatus === 'available' && (
-                              <div className="text-xs text-green-600 mt-1 font-medium">
-                                Mavjud
-                              </div>
-                            )}
-
-                            <div className={`w-2 h-2 rounded-full mx-auto mt-1 ${
-                              hourStatus === 'current' ? 'bg-blue-500' :
-                              hourStatus === 'other' ? 'bg-red-500' :
-                              'bg-green-500'
-                            }`}></div>
-
-                            {hourStatus === 'other' && (
-                              <div className="text-xs text-red-500 mt-1">
-                                Ko'rish
-                              </div>
+                              <>
+                                <div className="text-xs text-green-700 font-medium">✅ Mavjud</div>
+                                <div className="w-3 h-3 bg-green-500 rounded-full mx-auto"></div>
+                              </>
                             )}
                           </div>
                         );
                       })}
                     </div>
 
-                    {/* Legend */}
-                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs">
-                      <div className="flex items-center space-x-1">
-                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-500 rounded-full"></div>
-                        <span className="text-gray-700">Hozirgi</span>
+                    {/* Ranglar ma'nosi */}
+                    <div className="flex flex-wrap items-center justify-center gap-4 text-xs bg-gray-50 rounded-lg p-3">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span className="text-gray-700 font-medium">🔵 Shu buyurtma</span>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded-full"></div>
-                        <span className="text-gray-700">Boshqa buyurtma</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <span className="text-gray-700 font-medium">🔴 Boshqa buyurtma</span>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
-                        <span className="text-gray-700">Mavjud</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span className="text-gray-700 font-medium">🟢 Bo'sh vaqt</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Band Qilish Maqsadi - Batafsil */}
-                  <div className="bg-purple-50 rounded-lg p-3 sm:p-4 border border-purple-200">
-                    <h4 className="font-bold text-purple-900 mb-3 flex items-center text-sm sm:text-base">
-                      <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                      Batafsil Ma'lumot
-                    </h4>
-                    <div className="space-y-3">
-                      <div className="bg-white rounded-lg p-2 sm:p-3 border border-purple-100">
-                        <div className="text-xs sm:text-sm font-medium text-purple-800 mb-1 sm:mb-2">Tadbir Turi:</div>
-                        <div className="font-bold text-purple-900 text-sm sm:text-base">
-                          {selectedBookingDetails.id.includes('demo') ? 
-                            'To\'y Marosimi va Katta Ziyofat' : 
-                            selectedBookingDetails.clientName === 'Alijon Valiev' ? 'Nikoh To\'yi va Milliy Osh Berish' :
-                            selectedBookingDetails.clientName === 'Dilfuza Karimova' ? 'Tug\'ilgan Kun Nishonlash va Oilaviy Yig\'ilish' :
-                            selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 'Oilaviy Bayram va Mehmonlar Qabul Qilish' :
-                            'To\'y Marosimi'
-                          }
-                        </div>
-                      </div>
-
-                      <div className="bg-white rounded-lg p-2 sm:p-3 border border-purple-100">
-                        <div className="text-xs sm:text-sm font-medium text-purple-800 mb-1 sm:mb-2">Kutilayotgan Mehmonlar:</div>
-                        <div className="font-bold text-purple-900 text-sm sm:text-base">
-                          {selectedBookingDetails.id.includes('demo') ? 
-                            '150-200 kishi (katta to\'y)' :
-                            selectedBookingDetails.clientName === 'Alijon Valiev' ? '120 kishi (nikoh marosimi)' :
-                            selectedBookingDetails.clientName === 'Dilfuza Karimova' ? '80 kishi (yubiley nishonlash)' :
-                            selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? '150 kishi (oilaviy bayram)' :
-                            '100-150 kishi'
-                          }
-                        </div>
-                      </div>
-
-                      <div className="bg-white rounded-lg p-2 sm:p-3 border border-purple-100">
-                        <div className="text-xs sm:text-sm font-medium text-purple-800 mb-2">Maxsus Talablar:</div>
-                        <div className="text-xs sm:text-sm text-purple-700 space-y-1">
-                          {(() => {
-                            let requirements = '';
-                            if (selectedBookingDetails.id.includes('demo')) {
-                              requirements = '• Milliy bezatish va gul kompozitsiyalari\n• Maxsus ovqatlar va ananaviy taomlar\n• Jonli musiqa va raqs dasturi';
-                            } else if (selectedBookingDetails.clientName === 'Alijon Valiev') {
-                              requirements = '• Nikoh marosimi uchun maxsus bezatish\n• Milliy osh va ananaviy taomlar\n• Oilaviy yigilish uchun tinch muhit';
-                            } else if (selectedBookingDetails.clientName === 'Dilfuza Karimova') {
-                              requirements = '• Tugilgan kun uchun maxsus dekoratsiya\n• Shirinliklar va tort\n• Oilaviy atmosfera';
-                            } else if (selectedBookingDetails.clientName === 'Rustamjon Akbarov') {
-                              requirements = '• Oilaviy bayram uchun qulay joylashtirish\n• Katta ovqat uchun maxsus stol bezatish\n• Mehmonlar uchun qulayliklar';
-                            } else {
-                              requirements = '• Milliy analar boyicha bezatish\n• Maxsus ovqatlar va taomlar';
+                  {/* 3. TADBIR TAFSILOTLARI */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Tadbir ma'lumotlari */}
+                    <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                      <h5 className="font-bold text-purple-900 mb-3 flex items-center text-sm">
+                        🎊 Tadbir Tafsilotlari
+                      </h5>
+                      <div className="space-y-3">
+                        <div className="bg-white rounded-lg p-3 border border-purple-100">
+                          <div className="text-xs font-medium text-purple-700 mb-1">📋 Tadbir Turi:</div>
+                          <div className="font-semibold text-purple-900 text-sm">
+                            {selectedBookingDetails.id.includes('demo') ? 
+                              'To\'y marosimi va katta ziyofat' : 
+                              selectedBookingDetails.clientName === 'Alijon Valiev' ? 'Nikoh to\'yi va milliy osh berish' :
+                              selectedBookingDetails.clientName === 'Dilfuza Karimova' ? 'Tug\'ilgan kun va oilaviy yig\'ilish' :
+                              selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 'Oilaviy bayram va mehmonlar qabuli' :
+                              'To\'y marosimi'
                             }
+                          </div>
+                        </div>
 
-                            return requirements.split('\n').map((item, idx) => (
-                              <div key={idx} className="mb-1">{item}</div>
-                            ));
-                          })()}
+                        <div className="bg-white rounded-lg p-3 border border-purple-100">
+                          <div className="text-xs font-medium text-purple-700 mb-2">✨ Maxsus Talablar:</div>
+                          <div className="text-xs text-purple-700 space-y-1">
+                            {(() => {
+                              let requirements = '';
+                              if (selectedBookingDetails.id.includes('demo')) {
+                                requirements = '🌸 Milliy bezatish va gul kompozitsiyalari|🍽️ Maxsus ovqatlar va ananaviy taomlar|🎵 Jonli musiqa va raqs dasturi';
+                              } else if (selectedBookingDetails.clientName === 'Alijon Valiev') {
+                                requirements = '💒 Nikoh marosimi uchun maxsus bezatish|🍚 Milliy osh va ananaviy taomlar|👨‍👩‍👧‍👦 Oilaviy yig\'ilish uchun tinch muhit';
+                              } else if (selectedBookingDetails.clientName === 'Dilfuza Karimova') {
+                                requirements = '🎂 Tug\'ilgan kun uchun maxsus dekoratsiya|🧁 Shirinliklar va tort|👨‍👩‍👧‍👦 Oilaviy atmosfera';
+                              } else if (selectedBookingDetails.clientName === 'Rustamjon Akbarov') {
+                                requirements = '🏠 Oilaviy bayram uchun qulay joylashtirish|🍽️ Katta ovqat uchun maxsus stol bezatish|👥 Mehmonlar uchun qulayliklar';
+                              } else {
+                                requirements = '🌸 Milliy an\'analar bo\'yicha bezatish|🍽️ Maxsus ovqatlar va taomlar';
+                              }
+
+                              return requirements.split('|').map((item, idx) => (
+                                <div key={idx} className="mb-1 text-xs">{item}</div>
+                              ));
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Tizim ma'lumotlari */}
+                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <h5 className="font-bold text-gray-900 mb-3 flex items-center text-sm">
+                        📋 Tizim Ma'lumotlari
+                      </h5>
+                      <div className="space-y-2 text-xs sm:text-sm text-gray-700">
+                        <div className="flex justify-between bg-white rounded p-2 border border-gray-100">
+                          <span className="font-medium text-gray-600">👤 Buyurtmachi:</span>
+                          <span className="font-semibold text-gray-900">{selectedBookingDetails.clientName}</span>
+                        </div>
+                        <div className="flex justify-between bg-white rounded p-2 border border-gray-100">
+                          <span className="font-medium text-gray-600">🆔 ID:</span>
+                          <span className="font-mono text-xs">{selectedBookingDetails.id}</span>
+                        </div>
+                        <div className="flex justify-between bg-white rounded p-2 border border-gray-100">
+                          <span className="font-medium text-gray-600">📱 Telefon:</span>
+                          <span className="font-medium text-blue-600">{selectedBookingDetails.clientPhone}</span>
+                        </div>
+                        <div className="flex justify-between bg-white rounded p-2 border border-gray-100">
+                          <span className="font-medium text-gray-600">⏰ Vaqt:</span>
+                          <span className="font-bold text-red-600">{selectedBookingDetails.time} - {selectedBookingDetails.endTime}</span>
+                        </div>
+                        <div className="flex justify-between bg-white rounded p-2 border border-gray-100">
+                          <span className="font-medium text-gray-600">✅ Holati:</span>
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                            Tasdiqlangan ✓
+                          </span>
+                        </div>
+                        <div className="flex justify-between bg-white rounded p-2 border border-gray-100">
+                          <span className="font-medium text-gray-600">📅 Yaratilgan:</span>
+                          <span className="text-xs">{new Date().toLocaleDateString('uz-UZ')} {new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Qo'shimcha Ma'lumotlar */}
-                  <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
-                    <h4 className="font-bold text-gray-900 mb-3 flex items-center text-sm sm:text-base">
-                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                      Rezervatsiya Tafsilotlari
-                    </h4>
-                    <div className="space-y-2 text-xs sm:text-sm text-gray-700">
-                      <div className="flex flex-col sm:flex-row sm:justify-between bg-white rounded p-2 border border-gray-100">
-                        <span className="font-medium text-gray-600">Buyurtmachi:</span>
-                        <span className="font-bold text-gray-900 mt-1 sm:mt-0">{selectedBookingDetails.clientName}</span>
+                  {/* 4. AMALLAR - Foydalanuvchi uchun foydali */}
+                  <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 border-2 border-yellow-200">
+                    <h5 className="font-bold text-orange-900 mb-3 text-center">🚀 Mumkin Bo'lgan Amallar</h5>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                      <div className="bg-white rounded-lg p-3 border border-yellow-200">
+                        <div className="text-2xl mb-2">📞</div>
+                        <div className="text-xs font-medium text-gray-700">Buyurtmachi bilan bog'lanish</div>
+                        <div className="text-xs text-gray-500 mt-1">{selectedBookingDetails.clientPhone}</div>
                       </div>
-                      <div className="flex flex-col sm:flex-row sm:justify-between bg-white rounded p-2 border border-gray-100">
-                        <span className="font-medium text-gray-600">ID:</span>
-                        <span className="font-mono font-medium mt-1 sm:mt-0">{selectedBookingDetails.id}</span>
+                      <div className="bg-white rounded-lg p-3 border border-green-200 cursor-pointer hover:bg-green-50 transition-colors"
+                           onClick={() => setShowBookingModal(true)}>
+                        <div className="text-2xl mb-2">➕</div>
+                        <div className="text-xs font-medium text-gray-700">Yangi buyurtma berish</div>
+                        <div className="text-xs text-gray-500 mt-1">Bo'sh vaqtlarni band qilish</div>
                       </div>
-                      <div className="flex flex-col sm:flex-row sm:justify-between bg-white rounded p-2 border border-gray-100">
-                        <span className="font-medium text-gray-600">Vaqt:</span>
-                        <span className="font-bold text-red-600 mt-1 sm:mt-0">{selectedBookingDetails.time} - {selectedBookingDetails.endTime}</span>
-                      </div>
-                      <div className="flex flex-col sm:flex-row sm:justify-between bg-white rounded p-2 border border-gray-100">
-                        <span className="font-medium text-gray-600">Holati:</span>
-                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium inline-block mt-1 sm:mt-0">
-                          Tasdiqlangan ✓
-                        </span>
-                      </div>
-                      <div className="flex flex-col sm:flex-row sm:justify-between bg-white rounded p-2 border border-gray-100">
-                        <span className="font-medium text-gray-600">Yaratilgan:</span>
-                        <span className="text-xs mt-1 sm:mt-0">{new Date().toLocaleDateString('uz-UZ')} {new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}</span>
+                      <div className="bg-white rounded-lg p-3 border border-blue-200 cursor-pointer hover:bg-blue-50 transition-colors"
+                           onClick={() => setShowPricingModal(true)}>
+                        <div className="text-2xl mb-2">💰</div>
+                        <div className="text-xs font-medium text-gray-700">Narxlar va Ovqatlar</div>
+                        <div className="text-xs text-gray-500 mt-1">To'y paketlari ko'rish</div>
                       </div>
                     </div>
                   </div>
+
                 </div>
               </div>
 
               {/* Modal Footer - Sticky */}
-              <div className="bg-gray-50 px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex justify-between sm:justify-end items-center sticky bottom-0 z-20 shadow-lg sm:shadow-none">
+              <div className="bg-gradient-to-r from-gray-50 to-blue-50 px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex justify-between items-center sticky bottom-0 z-20 shadow-lg sm:shadow-none">
                 <div className="text-xs text-gray-600 sm:hidden">
-                  {selectedBookingDetails.time} - {selectedBookingDetails.endTime}
+                  ⏰ {selectedBookingDetails.time} - {selectedBookingDetails.endTime}
+                </div>
+                <div className="hidden sm:block text-sm text-gray-700">
+                  📊 Band qilingan: {selectedBookingDetails.duration} | 👤 {selectedBookingDetails.clientName}
                 </div>
                 <button
                   onClick={() => {
                     setShowBookingDetailsModal(false);
                     setSelectedBookingDetails(null);
                   }}
-                  className="px-4 sm:px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                  className="px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm"
                 >
-                  Yopish
+                  ✅ Yopish
                 </button>
               </div>
             </div>
