@@ -1562,18 +1562,131 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     </div>
                   </div>
 
-                  {/* Band Qilingan Soatlar - Batafsil */}
-                  <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-                    <h4 className="font-bold text-red-900 mb-3 flex items-center">
+                  {/* Kun davomidagi Barcha Soatlar */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="font-bold text-gray-900 mb-3 flex items-center">
                       <Clock className="w-4 h-4 mr-2" />
-                      {selectedBookingDetails.time} dan {selectedBookingDetails.endTime} gacha Band Qilingan
+                      {new Date(selectedBookingDetails.date).toLocaleDateString('uz-UZ', {
+                        day: 'numeric',
+                        month: 'long'
+                      })} kuni - Barcha Soatlar Holati
                     </h4>
                     
-                    <div className="mb-4 bg-white rounded-lg p-3 border border-red-100">
-                      <div className="text-sm text-red-800 mb-2">
+                    <p className="text-sm text-gray-600 mb-4">
+                      To'yxona ish vaqti: 08:00 dan 23:00 gacha. Quyida har bir soat uchun ma'lumot:
+                    </p>
+
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-4">
+                      {Array.from({ length: 15 }, (_, i) => {
+                        const hour = i + 8; // 8:00 dan 22:00 gacha
+                        const timeStr = `${hour.toString().padStart(2, '0')}:00`;
+                        
+                        // Hozirgi buyurtmada bu soat band qilinganmi?
+                        const isCurrentBookingHour = (() => {
+                          const [startHour] = selectedBookingDetails.time.split(':').map(Number);
+                          const [endHour] = selectedBookingDetails.endTime.split(':').map(Number);
+                          return hour >= startHour && hour < endHour;
+                        })();
+
+                        // Boshqa buyurtmalarda bu soat band qilinganmi?
+                        const otherBooking = bookedTimeSlots.find(slot => {
+                          if (slot.date !== selectedBookingDetails.date || slot.id === selectedBookingDetails.id) return false;
+                          const [startHour] = slot.time.split(':').map(Number);
+                          const [endHour] = slot.endTime.split(':').map(Number);
+                          return hour >= startHour && hour < endHour;
+                        });
+
+                        // Soat holati
+                        const hourStatus = isCurrentBookingHour ? 'current' : 
+                                         otherBooking ? 'other' : 'available';
+
+                        return (
+                          <div 
+                            key={hour}
+                            className={`rounded-lg p-2 text-center border transition-all cursor-pointer hover:shadow-md ${
+                              hourStatus === 'current' ? 'bg-blue-100 border-blue-300' :
+                              hourStatus === 'other' ? 'bg-red-100 border-red-300' :
+                              'bg-green-50 border-green-300 hover:bg-green-100'
+                            }`}
+                            onClick={() => {
+                              if (hourStatus === 'other' && otherBooking) {
+                                setSelectedBookingDetails(otherBooking);
+                              } else if (hourStatus === 'available') {
+                                alert(`${timeStr} vaqti mavjud. Bu vaqtni band qilish uchun asosiy sahifadan buyurtma bering.`);
+                              }
+                            }}
+                          >
+                            <div className={`text-sm font-bold ${
+                              hourStatus === 'current' ? 'text-blue-800' :
+                              hourStatus === 'other' ? 'text-red-800' :
+                              'text-green-800'
+                            }`}>
+                              {timeStr}
+                            </div>
+                            
+                            {hourStatus === 'current' && (
+                              <div className="text-xs text-blue-600 mt-1 font-medium">
+                                {selectedBookingDetails.clientName}
+                              </div>
+                            )}
+                            
+                            {hourStatus === 'other' && otherBooking && (
+                              <div className="text-xs text-red-600 mt-1 font-medium">
+                                {otherBooking.clientName}
+                              </div>
+                            )}
+                            
+                            {hourStatus === 'available' && (
+                              <div className="text-xs text-green-600 mt-1 font-medium">
+                                Mavjud
+                              </div>
+                            )}
+                            
+                            <div className={`w-2 h-2 rounded-full mx-auto mt-1 ${
+                              hourStatus === 'current' ? 'bg-blue-500' :
+                              hourStatus === 'other' ? 'bg-red-500' :
+                              'bg-green-500'
+                            }`}></div>
+                            
+                            {hourStatus === 'other' && (
+                              <div className="text-xs text-red-500 mt-1">
+                                Bosilsa ko'rish
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Legend */}
+                    <div className="flex items-center justify-center space-x-4 text-xs">
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span className="text-gray-700">Hozirgi buyurtma</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <span className="text-gray-700">Boshqa buyurtma</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span className="text-gray-700">Mavjud</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Hozirgi Buyurtma Tafsilotlari */}
+                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <h4 className="font-bold text-blue-900 mb-3 flex items-center">
+                      <Clock className="w-4 h-4 mr-2" />
+                      {selectedBookingDetails.clientName} - {selectedBookingDetails.time} dan {selectedBookingDetails.endTime} gacha
+                    </h4>
+                    
+                    <div className="mb-4 bg-white rounded-lg p-3 border border-blue-100">
+                      <div className="text-sm text-blue-800 mb-2">
                         <strong>{selectedBookingDetails.clientName}</strong> tomonidan buyurtma qilingan:
                       </div>
-                      <div className="text-xs text-red-600">
+                      <div className="text-xs text-blue-600">
                         {selectedBookingDetails.id.includes('demo') ? 
                           'To\'y marosimi uchun to\'yxona to\'liq band qilingan' : 
                           selectedBookingDetails.clientName === 'Alijon Valiev' ? 'Nikoh marosimi va katta osh berish uchun' :
@@ -1608,42 +1721,95 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           return (
                             <div 
                               key={hour}
-                              className="bg-red-100 border border-red-300 rounded-lg p-2 text-center"
+                              className="bg-blue-100 border border-blue-300 rounded-lg p-2 text-center"
                             >
-                              <div className="text-xs font-bold text-red-800">
+                              <div className="text-xs font-bold text-blue-800">
                                 {hour.toString().padStart(2, '0')}:00
                               </div>
-                              <div className="text-xs text-red-600 mt-1 font-medium">
+                              <div className="text-xs text-blue-600 mt-1 font-medium">
                                 {activity}
                               </div>
-                              <div className="w-2 h-2 bg-red-500 rounded-full mx-auto mt-1"></div>
+                              <div className="w-2 h-2 bg-blue-500 rounded-full mx-auto mt-1"></div>
                             </div>
                           );
                         });
                       })()}
                     </div>
                     
-                    <div className="bg-red-100 rounded-lg p-3 border border-red-300">
+                    <div className="bg-blue-100 rounded-lg p-3 border border-blue-300">
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="text-sm font-bold text-red-800">
-                            Jami Band Qilingan Vaqt: {(() => {
+                          <div className="text-sm font-bold text-blue-800">
+                            {selectedBookingDetails.clientName} buyurtmasi: {(() => {
                               const [startHour] = selectedBookingDetails.time.split(':').map(Number);
                               const [endHour] = selectedBookingDetails.endTime.split(':').map(Number);
                               return endHour - startHour;
                             })()} soat
                           </div>
-                          <div className="text-xs text-red-600 mt-1">
-                            {selectedBookingDetails.clientName} buyurtmasi bo'yicha
+                          <div className="text-xs text-blue-600 mt-1">
+                            Nima uchun: {selectedBookingDetails.id.includes('demo') ? 
+                              'To\'y marosimi va ziyofat' : 
+                              selectedBookingDetails.clientName === 'Alijon Valiev' ? 'Nikoh to\'yi va osh berish' :
+                              selectedBookingDetails.clientName === 'Dilfuza Karimova' ? 'Tug\'ilgan kun nishonlash' :
+                              selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 'Oilaviy bayram va mehmonlar qabul qilish' :
+                              'To\'y marosimi'
+                            }
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-xs text-red-600">Band qilgan:</div>
-                          <div className="text-sm font-bold text-red-800">{selectedBookingDetails.clientName}</div>
+                          <div className="text-xs text-blue-600">Telefon:</div>
+                          <div className="text-sm font-bold text-blue-800">{selectedBookingDetails.clientPhone}</div>
                         </div>
                       </div>
                     </div>
                   </div>
+
+                  {/* Boshqa Buyurtmalar (agar mavjud bo'lsa) */}
+                  {(() => {
+                    const otherBookingsToday = bookedTimeSlots.filter(slot => 
+                      slot.date === selectedBookingDetails.date && slot.id !== selectedBookingDetails.id
+                    );
+                    
+                    if (otherBookingsToday.length === 0) return null;
+                    
+                    return (
+                      <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                        <h4 className="font-bold text-red-900 mb-3 flex items-center">
+                          <Users className="w-4 h-4 mr-2" />
+                          Shu Kuni Boshqa Buyurtmalar
+                        </h4>
+                        
+                        <div className="space-y-3">
+                          {otherBookingsToday.map(booking => (
+                            <div 
+                              key={booking.id}
+                              className="bg-white rounded-lg p-3 border border-red-100 cursor-pointer hover:bg-red-50 transition-colors"
+                              onClick={() => setSelectedBookingDetails(booking)}
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="font-bold text-red-800">{booking.clientName}</div>
+                                <div className="text-sm font-bold text-red-700">
+                                  {booking.time} - {booking.endTime}
+                                </div>
+                              </div>
+                              <div className="text-xs text-red-600 mb-1">
+                                Telefon: {booking.clientPhone}
+                              </div>
+                              <div className="text-xs text-red-600">
+                                Nima uchun: {booking.clientName === 'Alijon Valiev' ? 'Nikoh to\'yi va osh berish' :
+                                booking.clientName === 'Dilfuza Karimova' ? 'Tug\'ilgan kun nishonlash' :
+                                booking.clientName === 'Rustamjon Akbarov' ? 'Oilaviy bayram va mehmonlar qabul qilish' :
+                                'Maxsus tadbir'}
+                              </div>
+                              <div className="text-xs text-red-500 mt-2 font-medium">
+                                Tafsilotlarini ko'rish uchun bosing
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Narx Ma'lumotlari */}
                   <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
