@@ -695,8 +695,19 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             setSelectedBookingDetails(dayBookings[0]);
                             setShowBookingDetailsModal(true);
                           } else {
-                            // Agar demo ma'lumotlarda yo'q bo'lsa, umuman band qilingan kunni ko'rsatish
-                            alert(`${day.fullDate} sanasi band qilingan, lekin tafsilotlar mavjud emas.`);
+                            // Agar rezervatsiya ma'lumotlari yo'q bo'lsa, demo ma'lumot yaratish
+                            const demoBooking = {
+                              id: 'demo-' + day.fullDate,
+                              date: day.fullDate,
+                              time: '14:00',
+                              endTime: '18:00',
+                              clientName: 'Band qilingan kun',
+                              clientPhone: '+998 -- --- -- --',
+                              duration: '4 soat',
+                              price: 1200
+                            };
+                            setSelectedBookingDetails(demoBooking);
+                            setShowBookingDetailsModal(true);
                           }
                         }
                       }}
@@ -707,9 +718,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         ${isToday ? 'ring-1 sm:ring-2 ring-blue-500' : ''}
                         ${isSelected ? 'bg-blue-100 border-blue-300' : 'border-gray-200'}
                         ${day.available && day.isCurrentMonth
-                          ? 'hover:bg-green-50 hover:border-green-300 cursor-pointer'
-                          : day.isCurrentMonth
-                            ? 'hover:bg-red-100 hover:border-red-300 cursor-pointer'
+                          ? 'hover:bg-green-50 hover:border-green-300 cursor-pointer hover:shadow-md'
+                          : day.isCurrentMonth && !day.available
+                            ? 'hover:bg-red-100 hover:border-red-300 cursor-pointer hover:shadow-md'
                             : 'cursor-not-allowed'
                         }
                         ${!day.available && day.isCurrentMonth ? 'bg-red-50 border-red-200' : ''}
