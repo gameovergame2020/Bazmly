@@ -18,6 +18,17 @@ interface DayAvailability {
   timeSlots: TimeSlot[];
 }
 
+interface Booking {
+  id: string;
+  date: string;
+  time: string;
+  endTime: string;
+  clientName: string;
+  clientPhone: string;
+  duration: string;
+  price: number;
+}
+
 export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
@@ -36,6 +47,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   const [guestCount, setGuestCount] = useState<number>(50);
   const [selectedPricing, setSelectedPricing] = useState<any>(null);
   const [expandedCategory, setExpandedCategory] = useState<string>('');
+  const [showBookingDetailsModal, setShowBookingDetailsModal] = useState(false);
+  const [selectedBookingDetails, setSelectedBookingDetails] = useState<Booking | null>(null);
 
   // Demo ma'lumotlar - real holatda server'dan keladi
   const availability: DayAvailability[] = [
@@ -160,6 +173,41 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
       timeSlots: []
     }
   ];
+
+  // Maqsadli serverdan olinishi kerak bo'lgan rezervatsiya ma'lumotlari
+  const bookedTimeSlots: Booking[] = [
+    {
+      id: 'booking1',
+      date: '2025-01-18',
+      time: '14:00',
+      endTime: '16:00',
+      clientName: 'Alijon Valiev',
+      clientPhone: '+998 90 123 45 67',
+      duration: '2 soat',
+      price: 600
+    },
+    {
+      id: 'booking2',
+      date: '2025-01-18',
+      time: '20:00',
+      endTime: '22:00',
+      clientName: 'Dilfuza Karimova',
+      clientPhone: '+998 93 567 89 01',
+      duration: '2 soat',
+      price: 600
+    },
+    {
+      id: 'booking3',
+      date: '2025-01-19',
+      time: '18:00',
+      endTime: '21:00',
+      clientName: 'Rustamjon Akbarov',
+      clientPhone: '+998 97 987 65 43',
+      duration: '3 soat',
+      price: 900
+    }
+  ];
+
 
   // Narxlar va ovqatlar ma'lumotlari
   const pricingPackages = [
@@ -440,9 +488,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     const phoneNumbers = clientPhone.replace(/\s/g, '');
     const validOperatorCodes = ['90', '91', '93', '94', '95', '97', '98', '99'];
     const operatorCode = phoneNumbers.substring(0, 2);
-    
+
     const isValidPhone = phoneNumbers.length === 9 && validOperatorCodes.includes(operatorCode);
-    
+
     if (selectedDate && selectedTime && selectedEndTime && clientName.trim() && isValidPhone) {
       const formattedPhone = `+998 ${clientPhone}`;
       alert(`Band qilindi!\nSana: ${selectedDate}\nVaqt: ${selectedTime} - ${selectedEndTime}\nMijoz: ${clientName}\nTelefon: ${formattedPhone}`);
@@ -985,28 +1033,44 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
                             const timeStr = `${hour.toString().padStart(2, '0')}:00`;
                             const dayData = getSelectedDayAvailability();
+
+                            // Band qilingan vaqtni tekshirish
+                            const bookedSlot = bookedTimeSlots.find(slot =>
+                              slot.date === selectedDate &&
+                              slot.time <= timeStr &&
+                              slot.endTime > timeStr
+                            );
+
                             const isBooked = dayData?.timeSlots.some(slot =>
                               slot.time === timeStr && slot.booked
-                            );
+                            ) || !!bookedSlot;
 
                             return (
                               <button
                                 key={hour}
                                 onClick={() => {
-                                  if (!isBooked) {
+                                  if (bookedSlot) {
+                                    // Band qilingan vaqtni bosganida tafsilotlarni ko'rsatish
+                                    setSelectedBookingDetails(bookedSlot);
+                                    setShowBookingDetailsModal(true);
+                                  } else if (!isBooked) {
                                     handleTimeClick(timeStr);
                                   }
                                 }}
-                                disabled={isBooked}
                                 className={`
-                                  px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg transition-all border-2
-                                  ${isBooked
-                                    ? 'bg-red-100 text-red-600 border-red-300 cursor-not-allowed'
-                                    : 'bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:border-green-400'
+                                  px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg transition-all border-2 relative
+                                  ${bookedSlot
+                                    ? 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200 cursor-pointer'
+                                    : isBooked
+                                      ? 'bg-red-100 text-red-600 border-red-300 cursor-not-allowed'
+                                      : 'bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:border-green-400'
                                   }
                                 `}
                               >
                                 {timeStr}
+                                {bookedSlot && (
+                                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
+                                )}
                               </button>
                             );
                           })}
@@ -1018,7 +1082,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           </div>
                           <div className="flex items-center space-x-1 sm:space-x-2">
                             <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-400 rounded-full"></div>
-                            <span className="text-gray-700">Band qilingan</span>
+                            <span className="text-gray-700">Band</span>
                           </div>
                         </div>
                       </div>
@@ -1269,7 +1333,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           onChange={(e) => {
                             let value = e.target.value.replace(/[^\d\s]/g, '');
                             const numbersOnly = value.replace(/\s/g, '');
-                            
+
                             // Maksimum 9 ta raqam
                             if (numbersOnly.length <= 9) {
                               // Avtomatik formatlash: XX XXX XX XX
@@ -1356,6 +1420,72 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                 <button
                   onClick={() => setShowBookingModal(false)}
                   className="px-4 sm:px-6 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base"
+                >
+                  Yopish
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Booking Details Modal */}
+        {showBookingDetailsModal && selectedBookingDetails && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white w-full h-full sm:h-auto sm:max-w-xl sm:rounded-xl shadow-2xl sm:max-h-[95vh] overflow-y-auto">
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between sticky top-0 z-10">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center">
+                    <Star className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-yellow-500 flex-shrink-0" />
+                    <span className="truncate">Band Qilingan Vaqt Tafsilotlari</span>
+                  </h3>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowBookingDetailsModal(false);
+                    setSelectedBookingDetails(null);
+                  }}
+                  className="text-gray-500 hover:text-gray-700 text-xl sm:text-2xl p-1 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 ml-2"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="p-4 sm:p-6">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-600">Mijoz Ismi:</span>
+                    <span className="font-semibold text-gray-800">{selectedBookingDetails.clientName}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-600">Telefon Raqam:</span>
+                    <span className="font-semibold text-gray-800">{selectedBookingDetails.clientPhone}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-600">Sana:</span>
+                    <span className="font-semibold text-gray-800">{selectedBookingDetails.date}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-600">Vaqt Oralig'i:</span>
+                    <span className="font-semibold text-gray-800">{selectedBookingDetails.time} - {selectedBookingDetails.endTime}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-600">Davomiylik:</span>
+                    <span className="font-semibold text-gray-800">{selectedBookingDetails.duration}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-600">Narxi:</span>
+                    <span className="font-bold text-lg text-green-600">${selectedBookingDetails.price}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex justify-end sticky bottom-0 sm:static">
+                <button
+                  onClick={() => {
+                    setShowBookingDetailsModal(false);
+                    setSelectedBookingDetails(null);
+                  }}
+                  className="px-4 sm:px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
                 >
                   Yopish
                 </button>
