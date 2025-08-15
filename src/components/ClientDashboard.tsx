@@ -341,7 +341,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
       });
     }
 
-    // Joriy oyning kunlari
+    // Current month's days
     for (let day = 1; day <= daysInMonth; day++) {
       const dayDate = new Date(currentYear, currentMonth, day);
       const dateString = dayDate.toISOString().split('T')[0];
@@ -362,10 +362,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
         }
       }
 
-      // BookedTimeSlots ga asosan band qilingan kunlarni tekshirish
+      // BookedTimeSlots mavjudligini tekshirish lekin kunni to'liq band qilmaslik
       const hasBooking = bookedTimeSlots.some(slot => slot.date === dateString);
-      if (hasBooking) {
-        isAvailable = false; // Band qilingan kunni mavjud emas deb belgilash
+      // Agar kun mavjud bo'lsa, buyurtma mavjudligi bilan ham mavjud qolsin
+      if (!isAvailable && !hasBooking) {
+        isAvailable = false;
+      } else if (dateString >= today) {
+        // Hozirgi va kelajak kunlar uchun mavjud qilish
+        isAvailable = true;
       }
 
       days.push({
@@ -1066,12 +1070,12 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             // Band qilingan vaqtni tekshirish - vaqt oralig'i ichida yotganini tekshirish
                             const bookedSlot = bookedTimeSlots.find(slot => {
                               if (slot.date !== selectedDate) return false;
-                              
+
                               // Hozirgi vaqt slot time va endTime oralig'ida yotadimi?
                               const slotStartMinutes = parseInt(slot.time.split(':')[0]) * 60 + parseInt(slot.time.split(':')[1]);
                               const slotEndMinutes = parseInt(slot.endTime.split(':')[0]) * 60 + parseInt(slot.endTime.split(':')[1]);
                               const checkTimeMinutes = hour * 60;
-                              
+
                               // Agar hozirgi vaqt band qilingan oraliq ichida bo'lsa
                               return checkTimeMinutes >= slotStartMinutes && checkTimeMinutes < slotEndMinutes;
                             });
@@ -1505,7 +1509,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Buyurtma maqsadi */}
                       <div className="bg-white rounded-lg p-3 border border-blue-100">
                         <div className="text-xs font-medium text-blue-700 mb-1">Nima uchun band qilgan:</div>
@@ -1515,7 +1519,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             selectedBookingDetails.clientName === 'Alijon Valiev' ? 'Nikoh to\'yi va osh berish' :
                             selectedBookingDetails.clientName === 'Dilfuza Karimova' ? 'Tug\'ilgan kun nishonlash' :
                             selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 'Oilaviy bayram va mehmonlar qabul qilish' :
-                            'To\'y marosimi va bayram'
+                            'To\'y marosimi'
                           }
                         </div>
                         <div className="text-xs text-blue-600 mt-1">
@@ -1571,7 +1575,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         month: 'long'
                       })} kuni - Barcha Soatlar Holati
                     </h4>
-                    
+
                     <p className="text-sm text-gray-600 mb-4">
                       To'yxona ish vaqti: 08:00 dan 23:00 gacha. Quyida har bir soat uchun ma'lumot:
                     </p>
@@ -1580,7 +1584,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       {Array.from({ length: 15 }, (_, i) => {
                         const hour = i + 8; // 8:00 dan 22:00 gacha
                         const timeStr = `${hour.toString().padStart(2, '0')}:00`;
-                        
+
                         // Hozirgi buyurtmada bu soat band qilinganmi?
                         const isCurrentBookingHour = (() => {
                           const [startHour] = selectedBookingDetails.time.split(':').map(Number);
@@ -1623,31 +1627,31 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             }`}>
                               {timeStr}
                             </div>
-                            
+
                             {hourStatus === 'current' && (
                               <div className="text-xs text-blue-600 mt-1 font-medium">
                                 {selectedBookingDetails.clientName}
                               </div>
                             )}
-                            
+
                             {hourStatus === 'other' && otherBooking && (
                               <div className="text-xs text-red-600 mt-1 font-medium">
                                 {otherBooking.clientName}
                               </div>
                             )}
-                            
+
                             {hourStatus === 'available' && (
                               <div className="text-xs text-green-600 mt-1 font-medium">
                                 Mavjud
                               </div>
                             )}
-                            
+
                             <div className={`w-2 h-2 rounded-full mx-auto mt-1 ${
                               hourStatus === 'current' ? 'bg-blue-500' :
                               hourStatus === 'other' ? 'bg-red-500' :
                               'bg-green-500'
                             }`}></div>
-                            
+
                             {hourStatus === 'other' && (
                               <div className="text-xs text-red-500 mt-1">
                                 Bosilsa ko'rish
@@ -1675,180 +1679,6 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     </div>
                   </div>
 
-                  {/* Hozirgi Buyurtma Tafsilotlari */}
-                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                    <h4 className="font-bold text-blue-900 mb-3 flex items-center">
-                      <Clock className="w-4 h-4 mr-2" />
-                      {selectedBookingDetails.clientName} - {selectedBookingDetails.time} dan {selectedBookingDetails.endTime} gacha
-                    </h4>
-                    
-                    <div className="mb-4 bg-white rounded-lg p-3 border border-blue-100">
-                      <div className="text-sm text-blue-800 mb-2">
-                        <strong>{selectedBookingDetails.clientName}</strong> tomonidan buyurtma qilingan:
-                      </div>
-                      <div className="text-xs text-blue-600">
-                        {selectedBookingDetails.id.includes('demo') ? 
-                          'To\'y marosimi uchun to\'yxona to\'liq band qilingan' : 
-                          selectedBookingDetails.clientName === 'Alijon Valiev' ? 'Nikoh marosimi va katta osh berish uchun' :
-                          selectedBookingDetails.clientName === 'Dilfuza Karimova' ? 'Tug\'ilgan kun nishonlash va ziyofat uchun' :
-                          selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 'Oilaviy bayram va katta yig\'ilish uchun' :
-                          'Maxsus tadbir uchun'
-                        }
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4">
-                      {(() => {
-                        const [startHour] = selectedBookingDetails.time.split(':').map(Number);
-                        const [endHour] = selectedBookingDetails.endTime.split(':').map(Number);
-                        const hours = [];
-                        
-                        for (let hour = startHour; hour < endHour; hour++) {
-                          hours.push(hour);
-                        }
-                        
-                        return hours.map((hour, index) => {
-                          const activity = selectedBookingDetails.id.includes('demo') ? 
-                            (index === 0 ? 'Tayyorgarlik' : index === hours.length - 1 ? 'Tozalash' : 'Asosiy tadbir') :
-                            selectedBookingDetails.clientName === 'Alijon Valiev' ? 
-                              (index === 0 ? 'Bezatish' : 'Nikoh & Osh') :
-                            selectedBookingDetails.clientName === 'Dilfuza Karimova' ? 
-                              (index === 0 ? 'Tayyorlik' : 'Tug\'ilgan kun') :
-                            selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 
-                              (index === 0 ? 'Yig\'ilish' : index === 1 ? 'Ovqat' : 'Dastur') :
-                            'Tadbir';
-                            
-                          return (
-                            <div 
-                              key={hour}
-                              className="bg-blue-100 border border-blue-300 rounded-lg p-2 text-center"
-                            >
-                              <div className="text-xs font-bold text-blue-800">
-                                {hour.toString().padStart(2, '0')}:00
-                              </div>
-                              <div className="text-xs text-blue-600 mt-1 font-medium">
-                                {activity}
-                              </div>
-                              <div className="w-2 h-2 bg-blue-500 rounded-full mx-auto mt-1"></div>
-                            </div>
-                          );
-                        });
-                      })()}
-                    </div>
-                    
-                    <div className="bg-blue-100 rounded-lg p-3 border border-blue-300">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-sm font-bold text-blue-800">
-                            {selectedBookingDetails.clientName} buyurtmasi: {(() => {
-                              const [startHour] = selectedBookingDetails.time.split(':').map(Number);
-                              const [endHour] = selectedBookingDetails.endTime.split(':').map(Number);
-                              return endHour - startHour;
-                            })()} soat
-                          </div>
-                          <div className="text-xs text-blue-600 mt-1">
-                            Nima uchun: {selectedBookingDetails.id.includes('demo') ? 
-                              'To\'y marosimi va ziyofat' : 
-                              selectedBookingDetails.clientName === 'Alijon Valiev' ? 'Nikoh to\'yi va osh berish' :
-                              selectedBookingDetails.clientName === 'Dilfuza Karimova' ? 'Tug\'ilgan kun nishonlash' :
-                              selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 'Oilaviy bayram va mehmonlar qabul qilish' :
-                              'To\'y marosimi'
-                            }
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-blue-600">Telefon:</div>
-                          <div className="text-sm font-bold text-blue-800">{selectedBookingDetails.clientPhone}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Boshqa Buyurtmalar (agar mavjud bo'lsa) */}
-                  {(() => {
-                    const otherBookingsToday = bookedTimeSlots.filter(slot => 
-                      slot.date === selectedBookingDetails.date && slot.id !== selectedBookingDetails.id
-                    );
-                    
-                    if (otherBookingsToday.length === 0) return null;
-                    
-                    return (
-                      <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-                        <h4 className="font-bold text-red-900 mb-3 flex items-center">
-                          <Users className="w-4 h-4 mr-2" />
-                          Shu Kuni Boshqa Buyurtmalar
-                        </h4>
-                        
-                        <div className="space-y-3">
-                          {otherBookingsToday.map(booking => (
-                            <div 
-                              key={booking.id}
-                              className="bg-white rounded-lg p-3 border border-red-100 cursor-pointer hover:bg-red-50 transition-colors"
-                              onClick={() => setSelectedBookingDetails(booking)}
-                            >
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="font-bold text-red-800">{booking.clientName}</div>
-                                <div className="text-sm font-bold text-red-700">
-                                  {booking.time} - {booking.endTime}
-                                </div>
-                              </div>
-                              <div className="text-xs text-red-600 mb-1">
-                                Telefon: {booking.clientPhone}
-                              </div>
-                              <div className="text-xs text-red-600">
-                                Nima uchun: {booking.clientName === 'Alijon Valiev' ? 'Nikoh to\'yi va osh berish' :
-                                booking.clientName === 'Dilfuza Karimova' ? 'Tug\'ilgan kun nishonlash' :
-                                booking.clientName === 'Rustamjon Akbarov' ? 'Oilaviy bayram va mehmonlar qabul qilish' :
-                                'Maxsus tadbir'}
-                              </div>
-                              <div className="text-xs text-red-500 mt-2 font-medium">
-                                Tafsilotlarini ko'rish uchun bosing
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* Narx Ma'lumotlari */}
-                  <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
-                    <h4 className="font-bold text-yellow-900 mb-3 flex items-center">
-                      <DollarSign className="w-4 h-4 mr-2" />
-                      Narx Tafsilotlari
-                    </h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-yellow-700">Soatlik narx:</span>
-                        <span className="font-semibold text-yellow-900">
-                          ${(() => {
-                            const [startHour] = selectedBookingDetails.time.split(':').map(Number);
-                            const [endHour] = selectedBookingDetails.endTime.split(':').map(Number);
-                            const totalHours = endHour - startHour;
-                            const hourlyRate = Math.round(selectedBookingDetails.price / totalHours);
-                            return hourlyRate;
-                          })()}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-yellow-700">Soat soni:</span>
-                        <span className="font-semibold text-yellow-900">
-                          {(() => {
-                            const [startHour] = selectedBookingDetails.time.split(':').map(Number);
-                            const [endHour] = selectedBookingDetails.endTime.split(':').map(Number);
-                            return endHour - startHour;
-                          })()} soat
-                        </span>
-                      </div>
-                      <div className="border-t border-yellow-300 pt-2">
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-yellow-900">Jami narx:</span>
-                          <span className="font-bold text-xl text-green-600">${selectedBookingDetails.price}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Band Qilish Maqsadi - Batafsil */}
                   <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
                     <h4 className="font-bold text-purple-900 mb-3 flex items-center">
@@ -1868,7 +1698,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           }
                         </div>
                       </div>
-                      
+
                       <div className="bg-white rounded-lg p-3 border border-purple-100">
                         <div className="text-sm font-medium text-purple-800 mb-2">Kutilayotgan Mehmonlar:</div>
                         <div className="font-bold text-purple-900">
@@ -1898,7 +1728,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             } else {
                               requirements = '• Milliy analar boyicha bezatish\n• Maxsus ovqatlar va taomlar';
                             }
-                            
+
                             return requirements.split('\n').map((item, idx) => (
                               <div key={idx} className="mb-1">{item}</div>
                             ));
