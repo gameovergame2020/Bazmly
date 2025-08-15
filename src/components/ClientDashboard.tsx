@@ -1885,18 +1885,24 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       <div className="bg-white rounded-lg p-3 border border-purple-100">
                         <div className="text-sm font-medium text-purple-800 mb-2">Maxsus Talablar:</div>
                         <div className="text-sm text-purple-700">
-                          {selectedBookingDetails.id.includes('demo') ? 
-                            '• Milliy bezatish va gul kompozitsiyalari\n• Maxsus ovqatlar va an\'anaviy taomlar\n• Jonli musiqa va raqs dasturi' :
-                            selectedBookingDetails.clientName === 'Alijon Valiev' ? 
-                              '• Nikoh marosimi uchun maxsus bezatish\n• Milliy osh va an\'anaviy taomlar\n• Oilaviy yig\'ilish uchun tinch muhit' :
-                            selectedBookingDetails.clientName === 'Dilfuza Karimova' ? 
-                              '• Tug\'ilgan kun uchun maxsus dekoratsiya\n• Shirinliklar va tort\n• Oilaviy atmosfera' :
-                            selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 
-                              '• Oilaviy bayram uchun qulay joylashtirish\n• Katta ovqat uchun maxsus stol bezatish\n• Mehmonlar uchun qulayliklar' :
-                              '• Milliy an\'analar bo\'yicha bezatish\n• Maxsus ovqatlar va taomlar'
-                          }.split('\n').map((item, idx) => (
-                            <div key={idx} className="mb-1">{item}</div>
-                          ))
+                          {(() => {
+                            let requirements = '';
+                            if (selectedBookingDetails.id.includes('demo')) {
+                              requirements = '• Milliy bezatish va gul kompozitsiyalari\n• Maxsus ovqatlar va ananaviy taomlar\n• Jonli musiqa va raqs dasturi';
+                            } else if (selectedBookingDetails.clientName === 'Alijon Valiev') {
+                              requirements = '• Nikoh marosimi uchun maxsus bezatish\n• Milliy osh va ananaviy taomlar\n• Oilaviy yigilish uchun tinch muhit';
+                            } else if (selectedBookingDetails.clientName === 'Dilfuza Karimova') {
+                              requirements = '• Tugilgan kun uchun maxsus dekoratsiya\n• Shirinliklar va tort\n• Oilaviy atmosfera';
+                            } else if (selectedBookingDetails.clientName === 'Rustamjon Akbarov') {
+                              requirements = '• Oilaviy bayram uchun qulay joylashtirish\n• Katta ovqat uchun maxsus stol bezatish\n• Mehmonlar uchun qulayliklar';
+                            } else {
+                              requirements = '• Milliy analar boyicha bezatish\n• Maxsus ovqatlar va taomlar';
+                            }
+                            
+                            return requirements.split('\n').map((item, idx) => (
+                              <div key={idx} className="mb-1">{item}</div>
+                            ));
+                          })()}
                         </div>
                       </div>
                     </div>
