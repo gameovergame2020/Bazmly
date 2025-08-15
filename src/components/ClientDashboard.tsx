@@ -1096,81 +1096,85 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           </div>
                         </div>
 
-                        <div className="space-y-3 sm:space-y-4">
-                          {/* Soat tanlash */}
-                          <div>
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                              Soat
-                            </label>
-                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                              {(() => {
-                                const [startHour] = tempStartTime.split(':').map(Number);
-                                const maxWorkHour = 23; // Ish vaqti 23:00 gacha
-                                const maxPossibleHours = maxWorkHour - startHour; // Ish vaqti doirasida qolgan soatlar
-                                const availableHours = Math.min(8, maxPossibleHours); // Maksimum 8 soat yoki ish vaqti oxirigacha
+                        <div className="space-y-4 sm:space-y-6">
+                          <div className="grid grid-cols-2 gap-4 sm:gap-6">
+                            {/* Soat tanlash */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Soat
+                              </label>
+                              <div className="relative">
+                                <select
+                                  value={selectedHours}
+                                  onChange={(e) => setSelectedHours(Number(e.target.value))}
+                                  className="w-full px-3 py-3 text-lg font-mono border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none cursor-pointer"
+                                >
+                                  {(() => {
+                                    const [startHour] = tempStartTime.split(':').map(Number);
+                                    const maxWorkHour = 23; // Ish vaqti 23:00 gacha
+                                    const maxPossibleHours = maxWorkHour - startHour; // Ish vaqti doirasida qolgan soatlar
+                                    const availableHours = Math.min(8, maxPossibleHours); // Maksimum 8 soat yoki ish vaqti oxirigacha
 
-                                return Array.from({ length: availableHours }, (_, i) => i + 1).map(hour => (
-                                  <button
-                                    key={hour}
-                                    onClick={() => setSelectedHours(hour)}
-                                    className={`
-                                      px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all border-2
-                                      ${selectedHours === hour
-                                        ? 'bg-blue-600 text-white border-blue-600'
-                                        : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
-                                      }
-                                    `}
-                                  >
-                                    {hour}
-                                  </button>
-                                ));
-                              })()}
+                                    return Array.from({ length: availableHours }, (_, i) => i + 1).map(hour => (
+                                      <option key={hour} value={hour}>
+                                        {hour.toString().padStart(2, '0')}
+                                      </option>
+                                    ));
+                                  })()}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </div>
+                              </div>
                             </div>
-                          </div>
 
-                          {/* Daqiqa tanlash */}
-                          <div>
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                              Daqiqa
-                            </label>
-                            <div className="grid grid-cols-4 gap-2">
-                              {(() => {
-                                const [startHour, startMin] = tempStartTime.split(':').map(Number);
-                                const startTotalMinutes = startHour * 60 + startMin;
-                                const maxWorkMinutes = 23 * 60; // 23:00 = 1380 daqiqa
-                                const availableMinutes = [0, 15, 30, 45];
+                            {/* Daqiqa tanlash */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Daqiqa
+                              </label>
+                              <div className="relative">
+                                <select
+                                  value={selectedMinutes}
+                                  onChange={(e) => setSelectedMinutes(Number(e.target.value))}
+                                  className="w-full px-3 py-3 text-lg font-mono border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none cursor-pointer"
+                                >
+                                  {(() => {
+                                    const [startHour, startMin] = tempStartTime.split(':').map(Number);
+                                    const startTotalMinutes = startHour * 60 + startMin;
+                                    const maxWorkMinutes = 23 * 60; // 23:00 = 1380 daqiqa
+                                    const availableMinutes = [0, 15, 30, 45];
 
-                                // Mavjud daqiqalarni filtrlash
-                                const filteredMinutes = availableMinutes.filter(minute => {
-                                  const totalDuration = selectedHours * 60 + minute;
-                                  const endTime = startTotalMinutes + totalDuration;
-                                  return endTime <= maxWorkMinutes;
-                                });
+                                    // Mavjud daqiqalarni filtrlash
+                                    const filteredMinutes = availableMinutes.filter(minute => {
+                                      const totalDuration = selectedHours * 60 + minute;
+                                      const endTime = startTotalMinutes + totalDuration;
+                                      return endTime <= maxWorkMinutes;
+                                    });
 
-                                // Agar hozirgi tanlangan daqiqa mavjud emas bo'lsa, birinchi mavjud daqiqani tanlash
-                                if (filteredMinutes.length > 0 && !filteredMinutes.includes(selectedMinutes)) {
-                                  // State ni o'zgartirish uchun setTimeout ishlatamiz
-                                  setTimeout(() => {
-                                    setSelectedMinutes(filteredMinutes[0]);
-                                  }, 0);
-                                }
+                                    // Agar hozirgi tanlangan daqiqa mavjud emas bo'lsa, birinchi mavjud daqiqani tanlash
+                                    if (filteredMinutes.length > 0 && !filteredMinutes.includes(selectedMinutes)) {
+                                      // State ni o'zgartirish uchun setTimeout ishlatamiz
+                                      setTimeout(() => {
+                                        setSelectedMinutes(filteredMinutes[0]);
+                                      }, 0);
+                                    }
 
-                                return filteredMinutes.map(minute => (
-                                  <button
-                                    key={minute}
-                                    onClick={() => setSelectedMinutes(minute)}
-                                    className={`
-                                      px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all border-2
-                                      ${selectedMinutes === minute
-                                        ? 'bg-blue-600 text-white border-blue-600'
-                                        : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
-                                      }
-                                    `}
-                                  >
-                                    {minute === 0 ? '00' : minute}
-                                  </button>
-                                ));
-                              })()}
+                                    return filteredMinutes.map(minute => (
+                                      <option key={minute} value={minute}>
+                                        {minute.toString().padStart(2, '0')}
+                                      </option>
+                                    ));
+                                  })()}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
