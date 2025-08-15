@@ -1330,7 +1330,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
+              </div>
 
               {/* Right side - Client Form */}
               <div className="space-y-4 sm:space-y-6">
