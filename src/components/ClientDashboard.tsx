@@ -682,9 +682,16 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           setSelectedTime('');
                           setSelectedEndTime('');
                           setShowBookingModal(true);
+                        } else if (day.isCurrentMonth && !day.available) {
+                          // Band qilingan kunni bosganda tafsilotlarni ko'rsatish
+                          const dayBookings = bookedTimeSlots.filter(slot => slot.date === day.fullDate);
+                          if (dayBookings.length > 0) {
+                            setSelectedBookingDetails(dayBookings[0]);
+                            setShowBookingDetailsModal(true);
+                          }
                         }
                       }}
-                      disabled={!day.isCurrentMonth || !day.available}
+                      disabled={false} // Har doim bosilishi mumkin
                       className={`
                         min-h-12 sm:min-h-16 p-1 sm:p-2 rounded-md sm:rounded-lg border transition-all relative
                         ${day.isCurrentMonth ? 'text-gray-900' : 'text-gray-300'}
@@ -692,7 +699,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         ${isSelected ? 'bg-blue-100 border-blue-300' : 'border-gray-200'}
                         ${day.available && day.isCurrentMonth
                           ? 'hover:bg-green-50 hover:border-green-300 cursor-pointer'
-                          : 'cursor-not-allowed'
+                          : day.isCurrentMonth
+                            ? 'hover:bg-red-100 hover:border-red-300 cursor-pointer'
+                            : 'cursor-not-allowed'
                         }
                         ${!day.available && day.isCurrentMonth ? 'bg-red-50 border-red-200' : ''}
                       `}
