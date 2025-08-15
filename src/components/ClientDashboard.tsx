@@ -1487,20 +1487,46 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
               <div className="p-4 sm:p-6">
                 <div className="space-y-6">
-                  {/* Asosiy Ma'lumotlar */}
+                  {/* Buyurtmachi Ma'lumotlari */}
                   <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                     <h4 className="font-bold text-blue-900 mb-3 flex items-center">
                       <Users className="w-4 h-4 mr-2" />
-                      Mijoz Ma'lumotlari
+                      Kim Band Qilgan?
                     </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <span className="text-xs font-medium text-blue-700 block">Mijoz Ismi:</span>
-                        <span className="font-semibold text-blue-900">{selectedBookingDetails.clientName}</span>
+                    <div className="space-y-3">
+                      <div className="bg-white rounded-lg p-3 border border-blue-100">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <Users className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-bold text-blue-900 text-lg">{selectedBookingDetails.clientName}</div>
+                            <div className="text-sm text-blue-700">{selectedBookingDetails.clientPhone}</div>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-xs font-medium text-blue-700 block">Telefon Raqam:</span>
-                        <span className="font-semibold text-blue-900">{selectedBookingDetails.clientPhone}</span>
+                      
+                      {/* Buyurtma maqsadi */}
+                      <div className="bg-white rounded-lg p-3 border border-blue-100">
+                        <div className="text-xs font-medium text-blue-700 mb-1">Nima uchun band qilgan:</div>
+                        <div className="font-semibold text-blue-900 text-base">
+                          {selectedBookingDetails.id.includes('demo') ? 
+                            'To\'y marosimi uchun' : 
+                            selectedBookingDetails.clientName === 'Alijon Valiev' ? 'Nikoh to\'yi va osh berish' :
+                            selectedBookingDetails.clientName === 'Dilfuza Karimova' ? 'Tug\'ilgan kun nishonlash' :
+                            selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 'Oilaviy bayram va mehmonlar qabul qilish' :
+                            'To\'y marosimi va bayram'
+                          }
+                        </div>
+                        <div className="text-xs text-blue-600 mt-1">
+                          {selectedBookingDetails.id.includes('demo') ? 
+                            'Taxminan 150-200 mehmon kutilmoqda' :
+                            selectedBookingDetails.clientName === 'Alijon Valiev' ? 'Nikoh marosimi, milliy taomlar, 120 mehmon' :
+                            selectedBookingDetails.clientName === 'Dilfuza Karimova' ? '50 yoshga to\'lish munosabati, 80 mehmon' :
+                            selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 'Oila a\'zosi muvaffaqiyati, 150 mehmon' :
+                            'Taxminan 100-150 mehmon'
+                          }
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1536,13 +1562,29 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     </div>
                   </div>
 
-                  {/* Band Qilingan Soatlar */}
+                  {/* Band Qilingan Soatlar - Batafsil */}
                   <div className="bg-red-50 rounded-lg p-4 border border-red-200">
                     <h4 className="font-bold text-red-900 mb-3 flex items-center">
-                      <X className="w-4 h-4 mr-2" />
-                      Band Qilingan Soatlar
+                      <Clock className="w-4 h-4 mr-2" />
+                      {selectedBookingDetails.time} dan {selectedBookingDetails.endTime} gacha Band Qilingan
                     </h4>
-                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                    
+                    <div className="mb-4 bg-white rounded-lg p-3 border border-red-100">
+                      <div className="text-sm text-red-800 mb-2">
+                        <strong>{selectedBookingDetails.clientName}</strong> tomonidan buyurtma qilingan:
+                      </div>
+                      <div className="text-xs text-red-600">
+                        {selectedBookingDetails.id.includes('demo') ? 
+                          'To\'y marosimi uchun to\'yxona to\'liq band qilingan' : 
+                          selectedBookingDetails.clientName === 'Alijon Valiev' ? 'Nikoh marosimi va katta osh berish uchun' :
+                          selectedBookingDetails.clientName === 'Dilfuza Karimova' ? 'Tug\'ilgan kun nishonlash va ziyofat uchun' :
+                          selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 'Oilaviy bayram va katta yig\'ilish uchun' :
+                          'Maxsus tadbir uchun'
+                        }
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4">
                       {(() => {
                         const [startHour] = selectedBookingDetails.time.split(':').map(Number);
                         const [endHour] = selectedBookingDetails.endTime.split(':').map(Number);
@@ -1552,27 +1594,54 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           hours.push(hour);
                         }
                         
-                        return hours.map(hour => (
-                          <div 
-                            key={hour}
-                            className="bg-red-100 border border-red-300 rounded-lg p-2 text-center"
-                          >
-                            <div className="text-xs font-medium text-red-700">
-                              {hour.toString().padStart(2, '0')}:00
+                        return hours.map((hour, index) => {
+                          const activity = selectedBookingDetails.id.includes('demo') ? 
+                            (index === 0 ? 'Tayyorgarlik' : index === hours.length - 1 ? 'Tozalash' : 'Asosiy tadbir') :
+                            selectedBookingDetails.clientName === 'Alijon Valiev' ? 
+                              (index === 0 ? 'Bezatish' : 'Nikoh & Osh') :
+                            selectedBookingDetails.clientName === 'Dilfuza Karimova' ? 
+                              (index === 0 ? 'Tayyorlik' : 'Tug\'ilgan kun') :
+                            selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 
+                              (index === 0 ? 'Yig\'ilish' : index === 1 ? 'Ovqat' : 'Dastur') :
+                            'Tadbir';
+                            
+                          return (
+                            <div 
+                              key={hour}
+                              className="bg-red-100 border border-red-300 rounded-lg p-2 text-center"
+                            >
+                              <div className="text-xs font-bold text-red-800">
+                                {hour.toString().padStart(2, '0')}:00
+                              </div>
+                              <div className="text-xs text-red-600 mt-1 font-medium">
+                                {activity}
+                              </div>
+                              <div className="w-2 h-2 bg-red-500 rounded-full mx-auto mt-1"></div>
                             </div>
-                            <div className="text-xs text-red-600 mt-1">
-                              Band
-                            </div>
-                          </div>
-                        ));
+                          );
+                        });
                       })()}
                     </div>
-                    <div className="mt-3 text-xs text-red-700 bg-red-100 rounded p-2 text-center">
-                      <strong>Jami {(() => {
-                        const [startHour] = selectedBookingDetails.time.split(':').map(Number);
-                        const [endHour] = selectedBookingDetails.endTime.split(':').map(Number);
-                        return endHour - startHour;
-                      })()} soat band qilingan</strong>
+                    
+                    <div className="bg-red-100 rounded-lg p-3 border border-red-300">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-bold text-red-800">
+                            Jami Band Qilingan Vaqt: {(() => {
+                              const [startHour] = selectedBookingDetails.time.split(':').map(Number);
+                              const [endHour] = selectedBookingDetails.endTime.split(':').map(Number);
+                              return endHour - startHour;
+                            })()} soat
+                          </div>
+                          <div className="text-xs text-red-600 mt-1">
+                            {selectedBookingDetails.clientName} buyurtmasi bo'yicha
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-red-600">Band qilgan:</div>
+                          <div className="text-sm font-bold text-red-800">{selectedBookingDetails.clientName}</div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -1614,21 +1683,82 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     </div>
                   </div>
 
+                  {/* Band Qilish Maqsadi - Batafsil */}
+                  <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                    <h4 className="font-bold text-purple-900 mb-3 flex items-center">
+                      <Star className="w-4 h-4 mr-2" />
+                      Nima Uchun Band Qilingan - Batafsil
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="bg-white rounded-lg p-3 border border-purple-100">
+                        <div className="text-sm font-medium text-purple-800 mb-2">Tadbir Turi:</div>
+                        <div className="font-bold text-purple-900">
+                          {selectedBookingDetails.id.includes('demo') ? 
+                            'To\'y Marosimi va Katta Ziyofat' : 
+                            selectedBookingDetails.clientName === 'Alijon Valiev' ? 'Nikoh To\'yi va Milliy Osh Berish' :
+                            selectedBookingDetails.clientName === 'Dilfuza Karimova' ? 'Tug\'ilgan Kun Nishonlash va Oilaviy Yig\'ilish' :
+                            selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 'Oilaviy Bayram va Mehmonlar Qabul Qilish' :
+                            'To\'y Marosimi'
+                          }
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-3 border border-purple-100">
+                        <div className="text-sm font-medium text-purple-800 mb-2">Kutilayotgan Mehmonlar:</div>
+                        <div className="font-bold text-purple-900">
+                          {selectedBookingDetails.id.includes('demo') ? 
+                            '150-200 kishi (katta to\'y)' :
+                            selectedBookingDetails.clientName === 'Alijon Valiev' ? '120 kishi (nikoh marosimi)' :
+                            selectedBookingDetails.clientName === 'Dilfuza Karimova' ? '80 kishi (yubiley nishonlash)' :
+                            selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? '150 kishi (oilaviy bayram)' :
+                            '100-150 kishi'
+                          }
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-lg p-3 border border-purple-100">
+                        <div className="text-sm font-medium text-purple-800 mb-2">Maxsus Talablar:</div>
+                        <div className="text-sm text-purple-700">
+                          {selectedBookingDetails.id.includes('demo') ? 
+                            '• Milliy bezatish va gul kompozitsiyalari\n• Maxsus ovqatlar va an\'anaviy taomlar\n• Jonli musiqa va raqs dasturi' :
+                            selectedBookingDetails.clientName === 'Alijon Valiev' ? 
+                              '• Nikoh marosimi uchun maxsus bezatish\n• Milliy osh va an\'anaviy taomlar\n• Oilaviy yig\'ilish uchun tinch muhit' :
+                            selectedBookingDetails.clientName === 'Dilfuza Karimova' ? 
+                              '• Tug\'ilgan kun uchun maxsus dekoratsiya\n• Shirinliklar va tort\n• Oilaviy atmosfera' :
+                            selectedBookingDetails.clientName === 'Rustamjon Akbarov' ? 
+                              '• Oilaviy bayram uchun qulay joylashtirish\n• Katta ovqat uchun maxsus stol bezatish\n• Mehmonlar uchun qulayliklar' :
+                              '• Milliy an\'analar bo\'yicha bezatish\n• Maxsus ovqatlar va taomlar'
+                          }.split('\n').map((item, idx) => (
+                            <div key={idx} className="mb-1">{item}</div>
+                          ))
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Qo'shimcha Ma'lumotlar */}
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <h4 className="font-bold text-gray-900 mb-3 flex items-center">
-                      <Star className="w-4 h-4 mr-2" />
-                      Qo'shimcha Ma'lumotlar
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Band Qilish Tafsilotlari
                     </h4>
                     <div className="space-y-2 text-sm text-gray-700">
+                      <div className="flex justify-between">
+                        <span>Buyurtmachi:</span>
+                        <span className="font-bold text-gray-900">{selectedBookingDetails.clientName}</span>
+                      </div>
                       <div className="flex justify-between">
                         <span>Rezervatsiya ID:</span>
                         <span className="font-mono font-medium">{selectedBookingDetails.id}</span>
                       </div>
                       <div className="flex justify-between">
+                        <span>Band qilingan vaqt:</span>
+                        <span className="font-bold text-red-600">{selectedBookingDetails.time} - {selectedBookingDetails.endTime}</span>
+                      </div>
+                      <div className="flex justify-between">
                         <span>Holati:</span>
                         <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                          Tasdiqlangan
+                          Tasdiqlangan ✓
                         </span>
                       </div>
                       <div className="flex justify-between">
