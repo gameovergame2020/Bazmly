@@ -1486,30 +1486,156 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
               </div>
 
               <div className="p-4 sm:p-6">
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-600">Mijoz Ismi:</span>
-                    <span className="font-semibold text-gray-800">{selectedBookingDetails.clientName}</span>
+                <div className="space-y-6">
+                  {/* Asosiy Ma'lumotlar */}
+                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <h4 className="font-bold text-blue-900 mb-3 flex items-center">
+                      <Users className="w-4 h-4 mr-2" />
+                      Mijoz Ma'lumotlari
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <span className="text-xs font-medium text-blue-700 block">Mijoz Ismi:</span>
+                        <span className="font-semibold text-blue-900">{selectedBookingDetails.clientName}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs font-medium text-blue-700 block">Telefon Raqam:</span>
+                        <span className="font-semibold text-blue-900">{selectedBookingDetails.clientPhone}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-600">Telefon Raqam:</span>
-                    <span className="font-semibold text-gray-800">{selectedBookingDetails.clientPhone}</span>
+
+                  {/* Vaqt Ma'lumotlari */}
+                  <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                    <h4 className="font-bold text-green-900 mb-3 flex items-center">
+                      <Clock className="w-4 h-4 mr-2" />
+                      Vaqt Tafsilotlari
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-green-700">Sana:</span>
+                        <span className="font-semibold text-green-900">
+                          {new Date(selectedBookingDetails.date).toLocaleDateString('uz-UZ', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-green-700">Vaqt Oralig'i:</span>
+                        <span className="font-bold text-lg text-green-900">
+                          {selectedBookingDetails.time} - {selectedBookingDetails.endTime}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-green-700">Davomiylik:</span>
+                        <span className="font-semibold text-green-900">{selectedBookingDetails.duration}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-600">Sana:</span>
-                    <span className="font-semibold text-gray-800">{selectedBookingDetails.date}</span>
+
+                  {/* Band Qilingan Soatlar */}
+                  <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                    <h4 className="font-bold text-red-900 mb-3 flex items-center">
+                      <X className="w-4 h-4 mr-2" />
+                      Band Qilingan Soatlar
+                    </h4>
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                      {(() => {
+                        const [startHour] = selectedBookingDetails.time.split(':').map(Number);
+                        const [endHour] = selectedBookingDetails.endTime.split(':').map(Number);
+                        const hours = [];
+                        
+                        for (let hour = startHour; hour < endHour; hour++) {
+                          hours.push(hour);
+                        }
+                        
+                        return hours.map(hour => (
+                          <div 
+                            key={hour}
+                            className="bg-red-100 border border-red-300 rounded-lg p-2 text-center"
+                          >
+                            <div className="text-xs font-medium text-red-700">
+                              {hour.toString().padStart(2, '0')}:00
+                            </div>
+                            <div className="text-xs text-red-600 mt-1">
+                              Band
+                            </div>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                    <div className="mt-3 text-xs text-red-700 bg-red-100 rounded p-2 text-center">
+                      <strong>Jami {(() => {
+                        const [startHour] = selectedBookingDetails.time.split(':').map(Number);
+                        const [endHour] = selectedBookingDetails.endTime.split(':').map(Number);
+                        return endHour - startHour;
+                      })()} soat band qilingan</strong>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-600">Vaqt Oralig'i:</span>
-                    <span className="font-semibold text-gray-800">{selectedBookingDetails.time} - {selectedBookingDetails.endTime}</span>
+
+                  {/* Narx Ma'lumotlari */}
+                  <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                    <h4 className="font-bold text-yellow-900 mb-3 flex items-center">
+                      <DollarSign className="w-4 h-4 mr-2" />
+                      Narx Tafsilotlari
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-yellow-700">Soatlik narx:</span>
+                        <span className="font-semibold text-yellow-900">
+                          ${(() => {
+                            const [startHour] = selectedBookingDetails.time.split(':').map(Number);
+                            const [endHour] = selectedBookingDetails.endTime.split(':').map(Number);
+                            const totalHours = endHour - startHour;
+                            const hourlyRate = Math.round(selectedBookingDetails.price / totalHours);
+                            return hourlyRate;
+                          })()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-yellow-700">Soat soni:</span>
+                        <span className="font-semibold text-yellow-900">
+                          {(() => {
+                            const [startHour] = selectedBookingDetails.time.split(':').map(Number);
+                            const [endHour] = selectedBookingDetails.endTime.split(':').map(Number);
+                            return endHour - startHour;
+                          })()} soat
+                        </span>
+                      </div>
+                      <div className="border-t border-yellow-300 pt-2">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold text-yellow-900">Jami narx:</span>
+                          <span className="font-bold text-xl text-green-600">${selectedBookingDetails.price}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-600">Davomiylik:</span>
-                    <span className="font-semibold text-gray-800">{selectedBookingDetails.duration}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-600">Narxi:</span>
-                    <span className="font-bold text-lg text-green-600">${selectedBookingDetails.price}</span>
+
+                  {/* Qo'shimcha Ma'lumotlar */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="font-bold text-gray-900 mb-3 flex items-center">
+                      <Star className="w-4 h-4 mr-2" />
+                      Qo'shimcha Ma'lumotlar
+                    </h4>
+                    <div className="space-y-2 text-sm text-gray-700">
+                      <div className="flex justify-between">
+                        <span>Rezervatsiya ID:</span>
+                        <span className="font-mono font-medium">{selectedBookingDetails.id}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Holati:</span>
+                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                          Tasdiqlangan
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Yaratilgan vaqt:</span>
+                        <span>{new Date().toLocaleDateString('uz-UZ')} {new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
