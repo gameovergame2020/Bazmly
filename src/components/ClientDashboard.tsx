@@ -1063,12 +1063,18 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             const timeStr = `${hour.toString().padStart(2, '0')}:00`;
                             const dayData = getSelectedDayAvailability();
 
-                            // Band qilingan vaqtni tekshirish
-                            const bookedSlot = bookedTimeSlots.find(slot =>
-                              slot.date === selectedDate &&
-                              slot.time <= timeStr &&
-                              slot.endTime > timeStr
-                            );
+                            // Band qilingan vaqtni tekshirish - vaqt oralig'i ichida yotganini tekshirish
+                            const bookedSlot = bookedTimeSlots.find(slot => {
+                              if (slot.date !== selectedDate) return false;
+                              
+                              // Hozirgi vaqt slot time va endTime oralig'ida yotadimi?
+                              const slotStartMinutes = parseInt(slot.time.split(':')[0]) * 60 + parseInt(slot.time.split(':')[1]);
+                              const slotEndMinutes = parseInt(slot.endTime.split(':')[0]) * 60 + parseInt(slot.endTime.split(':')[1]);
+                              const checkTimeMinutes = hour * 60;
+                              
+                              // Agar hozirgi vaqt band qilingan oraliq ichida bo'lsa
+                              return checkTimeMinutes >= slotStartMinutes && checkTimeMinutes < slotEndMinutes;
+                            });
 
                             const isBooked = dayData?.timeSlots.some(slot =>
                               slot.time === timeStr && slot.booked
