@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Check, X, Users, DollarSign, Star, ChefHat, Utensils, Calculator } from 'lucide-react';
 import { User } from '../App';
 
@@ -44,11 +44,27 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   const [showBookingModal, setShowBookingModal] = useState<boolean>(false);
   const [showPricingModal, setShowPricingModal] = useState<boolean>(false);
   const [selectedMenuItems, setSelectedMenuItems] = useState<any[]>([]);
-  const [guestCount, setGuestCount] = useState<number>(50);
-  const [selectedPricing, setSelectedPricing] = useState<any>(null);
+  const [guestCount, setGuestCount] = useState<number>(0);
+  const [selectedPricing, setSelectedPricing] = useState<any>(null); // Will be set to default after pricingPackages is defined
   const [expandedCategory, setExpandedCategory] = useState<string>('');
-  const [showBookingDetailsModal, setShowBookingDetailsModal] = useState(false);
-  const [selectedBookingDetails, setSelectedBookingDetails] = useState<Booking | null>(null);
+  const [expandedPackage, setExpandedPackage] = useState<string>('');
+  const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
+  const [showSaveCalculationModal, setShowSaveCalculationModal] = useState<boolean>(false);
+
+
+  const [storedBookings, setStoredBookings] = useState<Booking[]>(() => {
+    try {
+      const saved = localStorage.getItem('testBookings');
+      if (saved && saved.trim() !== '' && saved !== 'undefined' && saved !== 'null') {
+        return JSON.parse(saved);
+      }
+      return [];
+    } catch (error) {
+      console.error('Error parsing stored bookings:', error);
+      localStorage.removeItem('testBookings'); // Buzuk ma'lumotni tozalash
+      return [];
+    }
+  });
 
   // Demo ma'lumotlar - real holatda server'dan keladi
   const availability: DayAvailability[] = [
@@ -175,7 +191,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
   ];
 
   // Maqsadli serverdan olinishi kerak bo'lgan rezervatsiya ma'lumotlari
-  const bookedTimeSlots: Booking[] = [
+  const defaultBookings: Booking[] = [
     {
       id: 'booking1',
       date: '2025-01-18',
@@ -208,6 +224,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     }
   ];
 
+  // Default va saqlangan bookinglarni birlashtirish
+  const bookedTimeSlots: Booking[] = [...defaultBookings, ...storedBookings];
+
 
   // Narxlar va ovqatlar ma'lumotlari
   const pricingPackages = [
@@ -236,7 +255,6 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
         'Bezatilgan stol va stullar',
         'Professional bezatish',
         'Maxsus ovqatlar (6 ta)',
-        'Meva va shirinliklar',
         'Milliy ichimliklar',
         'Gul bezaklari'
       ],
@@ -260,6 +278,13 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
       color: 'bg-yellow-50 border-yellow-200'
     }
   ];
+
+  // Set default pricing package after component mounts
+  useEffect(() => {
+    if (!selectedPricing && pricingPackages.length > 0) {
+      setSelectedPricing(pricingPackages[0]); // Default to "Asosiy To'y Paketi"
+    }
+  }, [selectedPricing]);
 
   const menuCategories = [
     {
@@ -345,38 +370,100 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     for (let day = 1; day <= daysInMonth; day++) {
       const dayDate = new Date(currentYear, currentMonth, day);
       const dateString = dayDate.toISOString().split('T')[0];
-      const dayAvailability = availability.find(a => a.date === dateString);
 
-      // Agar ma'lumot yo'q bo'lsa, tasodifiy available qilamiz
-      let isAvailable = dayAvailability?.available || false;
+      // O'tgan kunlarni band qilamiz
+      if (dateString < today) {
+        days.push({
+          date: day,
+          isCurrentMonth: true,
+          fullDate: dateString,
+          available: false
+        });
+        continue;
+      }
 
-      // Agar ma'lumot mavjud emas, doimiy qiymat beramiz
-      if (!dayAvailability) {
-        // O'tgan kunlarni band qilamiz
-        if (dateString < today) {
-          isAvailable = false;
-        } else {
-          // Kelajak kunlar uchun doimiy pattern
-          const dayOfMonth = new Date(dateString).getDate();
-          isAvailable = dayOfMonth % 3 !== 0; // Har 3-kun band bo'ladi
+      // Barcha mavjud vaqt slotlari (8:00 dan 22:00 gacha)
+      const allTimeSlots = Array.from({ length: 15 }, (_, i) => {
+        const hour = i + 8;
+        if (hour > 22) return null;
+        return `${hour.toString().padStart(2, '0')}:00`;
+      }).filter(Boolean);
+
+      const dayBookings = bookedTimeSlots.filter(slot => slot.date === dateString);
+      const bookedHours = new Set();
+
+      dayBookings.forEach(booking => {
+        const [startHour] = booking.time.split(':').map(Number);
+        const [endHour, endMin] = booking.endTime.split(':').map(Number);
+
+        for (let hour = startHour; hour < endHour || (hour === endHour && endMin > 0); hour++) {
+          if (hour < endHour) {
+            bookedHours.add(`${hour.toString().padStart(2, '0')}:00`);
+          } else if (hour === endHour && endMin > 0) {
+            // Tugash soati qisman band (faqat daqiqalargacha)
+            bookedHours.add(`${hour.toString().padStart(2, '0')}:00`);
+          }
+        }
+      });
+
+      // Hozirgi tanlangan vaqt oralig'ini hisobga olish (faqat booking jarayonida)
+      if (dateString === selectedDate && selectedTime && selectedEndTime) {
+        const [selectedStartHour, selectedStartMin] = selectedTime.split(':').map(Number);
+        const [selectedEndHour, selectedEndMin] = selectedEndTime.split(':').map(Number);
+
+        const selectedStartMinutes = selectedStartHour * 60 + selectedStartMin;
+        const selectedEndMinutes = selectedEndHour * 60 + selectedEndMin;
+
+        // Faqat to'liq band qilinayotgan soatlarni qo'shish
+        for (let hour = selectedStartHour; hour < selectedEndHour; hour++) {
+          const hourStartMinutes = hour * 60;
+          const hourEndMinutes = hour * 60 + 59;
+
+          // Agar soat to'liq tanlangan oraliqda yotsa
+          if (selectedStartMinutes <= hourStartMinutes && selectedEndMinutes > hourEndMinutes) {
+            bookedHours.add(`${hour.toString().padStart(2, '0')}:00`);
+          }
+          // Yoki boshlanish soati bo'lsa va to'liq soat tanlangan bo'lsa (00 daqiqadan boshlanib, keyingi soat 00 daqiqasigacha)
+          else if (hour === selectedStartHour && selectedStartMin === 0 && selectedEndMinutes > hourEndMinutes) {
+            bookedHours.add(`${hour.toString().padStart(2, '0')}:00`);
+          }
+          // Yoki tugash soati bo'lsa va to'liq soat tanlangan bo'lsa
+          else if (hour === selectedEndHour - 1 && selectedEndMin === 0 && selectedStartMinutes <= hourStartMinutes) {
+            bookedHours.add(`${hour.toString().padStart(2, '0')}:00`);
+          }
+        }
+
+        // Tugash soatini ham tekshirish - faqat to'liq soat band qilingan holatda
+        if (selectedEndMin === 0 && selectedEndHour > selectedStartHour) {
+          const endHour = selectedEndHour - 1;
+          const endHourStartMinutes = endHour * 60;
+          if (selectedStartMinutes <= endHourStartMinutes) {
+            bookedHours.add(`${endHour.toString().padStart(2, '0')}:00`);
+          }
         }
       }
 
-      // BookedTimeSlots mavjudligini tekshirish lekin kunni to'liq band qilmaslik
-      const hasBooking = bookedTimeSlots.some(slot => slot.date === dateString);
-      // Agar kun mavjud bo'lsa, buyurtma mavjudligi bilan ham mavjud qolsin
-      if (!isAvailable && !hasBooking) {
-        isAvailable = false;
-      } else if (dateString >= today) {
-        // Hozirgi va kelajak kunlar uchun mavjud qilish
-        isAvailable = true;
+      // Availability ma'lumotlaridan ham band qilingan vaqtlarni olish
+      const dayAvailability = availability.find(a => a.date === dateString);
+      if (dayAvailability?.timeSlots) {
+        dayAvailability.timeSlots.forEach(slot => {
+          if (slot.booked || !slot.available) {
+            bookedHours.add(slot.time);
+          }
+        });
       }
+
+      // Agar barcha vaqt slotlari band bo'lsa, kun to'liq band
+      // Aks holda qisman mavjud hisoblanadi
+      const isFullyBooked = allTimeSlots.every(time => bookedHours.has(time));
+      const hasAnyAvailableSlot = allTimeSlots.some(time => !bookedHours.has(time));
 
       days.push({
         date: day,
         isCurrentMonth: true,
         fullDate: dateString,
-        available: isAvailable
+        available: hasAnyAvailableSlot, // Agar kamida bitta slot mavjud bo'lsa, kun mavjud
+        partiallyBooked: bookedHours.size > 0 && !isFullyBooked // Qisman band qilingan
       });
     }
 
@@ -431,8 +518,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     const startMinutes = startHour * 60 + startMinute;
     const options = [];
 
-    // 30 daqiqadan 8 soatgacha
-    for (let minutes = 30; minutes <= 480; minutes += 15) {
+    // 15 daqiqadan 8 soatgacha - qisqa vaqt oraliqlarini ham qo'llab-quvvatlash
+    for (let minutes = 15; minutes <= 480; minutes += 15) {
       const endMinutes = startMinutes + minutes;
       if (endMinutes >= 23 * 60) break; // 23:00 dan oshmasin
 
@@ -475,22 +562,22 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     const endMin = totalEndMinutes % 60;
 
     // 23:00 dan oshmasligini tekshirish
-    if (endHour >= 23 && endMin > 0) { // Agar soat 23:00 dan katta bo'lsa yoki 23:00 ga teng bo'lib daqiqa bor bo'lsa
+    if (endHour >= 23 && endMin > 0) {
       alert('Tugash vaqti 23:00 dan oshmasligi kerak!');
       return;
     }
-    // Agar to'xtovsiz 23:00 ga teng bo'lsa ham, uni ham tekshirish (masalan, 22:30 + 1 soat = 23:30)
     if (totalEndMinutes > 23 * 60) {
         alert('Tugash vaqti 23:00 dan oshmasligi kerak!');
         return;
     }
 
-
     const endTimeStr = `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
 
+    // Tanlangan vaqt oralig'ini saqlash
     setSelectedTime(tempStartTime);
     setSelectedEndTime(endTimeStr);
     setShowDurationModal(false);
+    setTempStartTime(''); // Temp vaqtni tozalash
   };
 
   const handleBooking = () => {
@@ -502,16 +589,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
     const isValidPhone = phoneNumbers.length === 9 && validOperatorCodes.includes(operatorCode);
 
     if (selectedDate && selectedTime && selectedEndTime && clientName.trim() && isValidPhone) {
-      const formattedPhone = `+998 ${clientPhone}`;
-      alert(`Band qilindi!\nSana: ${selectedDate}\nVaqt: ${selectedTime} - ${selectedEndTime}\nMijoz: ${clientName}\nTelefon: ${formattedPhone}`);
-      setSelectedDate('');
-      setSelectedTime('');
-      setSelectedEndTime('');
-      setShowTimeRangeSelector(false);
-      setTempStartTime('');
-      setClientName('');
-      setClientPhone('');
-      setShowBookingModal(false);
+      // Tasdiqlash modalini ko'rsatish
+      setShowConfirmationModal(true);
     } else {
       if (!selectedDate) {
         alert('Iltimos sana tanlang!');
@@ -519,12 +598,62 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
         alert('Iltimos vaqt oralig\'ini tanlang!');
       } else if (!clientName.trim()) {
         alert('Iltimos ism familiyangizni kiriting!');
-      } else if (phoneNumbers.length !== 9) {
-        alert('Telefon raqam 9 ta raqamdan iborat bo\'lishi kerak!');
-      } else if (!validOperatorCodes.includes(operatorCode)) {
-        alert(`Noto'g'ri operator kodi! Foydalaning: ${validOperatorCodes.join(', ')}`);
+      } else if (!isValidPhone) {
+        if (phoneNumbers.length !== 9) {
+          alert('Telefon raqam 9 ta raqamdan iborat bo\'lishi kerak!');
+        } else {
+          alert(`Noto'g'ri operator kodi! Foydalaning: ${validOperatorCodes.join(', ')}`);
+        }
       }
     }
+  };
+
+  const confirmBooking = () => {
+    const formattedPhone = `+998 ${clientPhone}`;
+
+    // Yangi booking yaratish
+    const [startHour, startMin] = selectedTime.split(':').map(Number);
+    const [endHour, endMin] = selectedEndTime.split(':').map(Number);
+    const durationMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+    const hours = Math.floor(durationMinutes / 60);
+    const minutes = durationMinutes % 60;
+    const durationStr = hours > 0 && minutes > 0
+      ? `${hours} soat ${minutes} daqiqa`
+      : hours > 0
+        ? `${hours} soat`
+        : `${minutes} daqiqa`;
+
+    const hourlyRate = startHour >= 18 ? 400 : startHour >= 10 ? 300 : 200;
+    const totalPrice = Math.ceil(durationMinutes / 60) * hourlyRate;
+
+    const newBooking: Booking = {
+      id: 'test-' + Date.now(),
+      date: selectedDate,
+      time: selectedTime,
+      endTime: selectedEndTime,
+      clientName: clientName.trim(),
+      clientPhone: formattedPhone,
+      duration: durationStr,
+      price: totalPrice
+    };
+
+    // Yangi bookingni saqlash
+    const updatedBookings = [...storedBookings, newBooking];
+    setStoredBookings(updatedBookings);
+    localStorage.setItem('testBookings', JSON.stringify(updatedBookings));
+
+    // Band qilishdan so'ng barcha ma'lumotlarni tozalash
+    setSelectedTime('');
+    setSelectedEndTime('');
+    setShowTimeRangeSelector(false);
+    setTempStartTime('');
+    setClientName('');
+    setClientPhone('');
+    setShowBookingModal(false);
+    setShowConfirmationModal(false);
+    setSelectedDate(''); // Sanani ham tozalash
+
+    // Alert ogohlantirish olib tashlandi - foydalanuvchi muvaffaqiyatli booking qilganini modal orqali ko'radi
   };
 
   const handleMenuItemToggle = (item: any) => {
@@ -602,7 +731,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
             <div className="mb-6 sm:mb-8">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
                 {/* Desktop layout - month with year on left */}
-                <h3 className="hidden sm:block text-lg sm:text-xl font-bold text-gray-900 text-center sm:text-left">
+                <h3 className="hidden sm:block text-lg sm:text-2xl font-bold text-gray-900 text-center sm:text-left">
                   {(() => {
                     const months = [
                       'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
@@ -656,14 +785,21 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                   </button>
                 </div>
 
-                <div className="flex items-center justify-center sm:justify-end space-x-3 sm:space-x-4 text-xs sm:text-sm">
+                <div className="flex items-center justify-center sm:justify-end space-x-2 sm:space-x-3 text-xs sm:text-sm">
                   <div className="flex items-center space-x-1 sm:space-x-2">
                     <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full"></div>
                     <span>Mavjud</span>
                   </div>
                   <div className="flex items-center space-x-1 sm:space-x-2">
+                    <div className="flex space-x-0.5">
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-yellow-400 rounded-full"></div>
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full"></div>
+                    </div>
+                    <span>Qisman</span>
+                  </div>
+                  <div className="flex items-center space-x-1 sm:space-x-2">
                     <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-400 rounded-full"></div>
-                    <span>Band</span>
+                    <span>To'liq band</span>
                   </div>
                 </div>
               </div>
@@ -683,64 +819,78 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                   const isSelected = day.fullDate === selectedDate;
                   const isToday = day.fullDate === new Date().toISOString().split('T')[0];
 
+                  // Band qilingan vaqtlarni hisoblash
+                  const dayBookings = bookedTimeSlots.filter(slot => slot.date === day.fullDate);
+                  const bookedHours = new Set();
+
+                  dayBookings.forEach(booking => {
+                    const [startHour] = booking.time.split(':').map(Number);
+                    const [endHour, endMin] = booking.endTime.split(':').map(Number);
+
+                    // Band qilingan vaqt oralig'idagi soatlarni qo'shish
+                    // Tugash vaqti faqat daqiqa 0 bo'lgan holatda band hisoblanadi
+                    for (let hour = startHour; hour < endHour || (hour === endHour && endMin > 0); hour++) {
+                      if (hour < endHour) {
+                        bookedHours.add(`${hour.toString().padStart(2, '0')}:00`);
+                      } else if (hour === endHour && endMin > 0) {
+                        // Tugash soati qisman band (faqat daqiqalargacha)
+                        bookedHours.add(`${hour.toString().padStart(2, '0')}:00`);
+                      }
+                    }
+                  });
+
+                  const isPartiallyBooked = day.partiallyBooked || bookedHours.size > 0;
+
                   return (
-                    <button
+                    <div
                       key={index}
                       onClick={() => {
-                        if (day.isCurrentMonth && day.available) {
+                        if (day.isCurrentMonth) {
                           setSelectedDate(day.fullDate);
                           setSelectedTime('');
                           setSelectedEndTime('');
                           setShowBookingModal(true);
-                        } else if (day.isCurrentMonth && !day.available) {
-                          // Band qilingan kunni bosganda tafsilotlarni ko'rsatish
-                          const dayBookings = bookedTimeSlots.filter(slot => slot.date === day.fullDate);
-                          if (dayBookings.length > 0) {
-                            setSelectedBookingDetails(dayBookings[0]);
-                            setShowBookingDetailsModal(true);
-                          } else {
-                            // Agar rezervatsiya ma'lumotlari yo'q bo'lsa, demo ma'lumot yaratish
-                            const demoBooking = {
-                              id: 'demo-' + day.fullDate,
-                              date: day.fullDate,
-                              time: '14:00',
-                              endTime: '18:00',
-                              clientName: 'Band qilingan kun',
-                              clientPhone: '+998 -- --- -- --',
-                              duration: '4 soat',
-                              price: 1200
-                            };
-                            setSelectedBookingDetails(demoBooking);
-                            setShowBookingDetailsModal(true);
-                          }
                         }
                       }}
-                      disabled={false} // Har doim bosilishi mumkin
                       className={`
                         min-h-12 sm:min-h-16 p-1 sm:p-2 rounded-md sm:rounded-lg border transition-all relative
                         ${day.isCurrentMonth ? 'text-gray-900' : 'text-gray-300'}
                         ${isToday ? 'ring-1 sm:ring-2 ring-blue-500' : ''}
                         ${isSelected ? 'bg-blue-100 border-blue-300' : 'border-gray-200'}
                         ${day.available && day.isCurrentMonth
-                          ? 'hover:bg-green-50 hover:border-green-300 cursor-pointer hover:shadow-md'
+                          ? isPartiallyBooked
+                            ? 'hover:bg-yellow-50 hover:border-yellow-300 cursor-pointer hover:shadow-md bg-yellow-25 border-yellow-200'
+                            : 'hover:bg-green-50 hover:border-green-300 cursor-pointer hover:shadow-md'
                           : day.isCurrentMonth && !day.available
-                            ? 'hover:bg-red-100 hover:border-red-300 cursor-pointer hover:shadow-md'
+                            ? 'hover:bg-red-100 hover:border-red-300 cursor-pointer hover:shadow-md bg-red-50 border-red-200'
                             : 'cursor-not-allowed'
                         }
-                        ${!day.available && day.isCurrentMonth ? 'bg-red-50 border-red-200' : ''}
                       `}
                     >
                       <div className="text-xs sm:text-sm font-medium">{day.date}</div>
                       {day.isCurrentMonth && (
-                        <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1">
+                        <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 flex space-x-0.5">
                           {day.available ? (
-                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full"></div>
+                            isPartiallyBooked ? (
+                              <>
+                                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-yellow-400 rounded-full"></div>
+                                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full"></div>
+                              </>
+                            ) : (
+                              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full"></div>
+                            )
                           ) : (
                             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-400 rounded-full"></div>
                           )}
                         </div>
                       )}
-                    </button>
+                      {/* Qisman band qilingan kunlar uchun qo'shimcha indikator */}
+                      {isPartiallyBooked && day.available && day.isCurrentMonth && (
+                        <div className="absolute bottom-0.5 left-0.5 text-xs font-bold text-yellow-600">
+                          {bookedHours.size}
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>
@@ -752,7 +902,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
         {/* Pricing and Menu Modal */}
         {showPricingModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-2 sm:p-4">
             <div className="bg-white w-full h-full sm:h-auto sm:max-w-7xl sm:rounded-xl shadow-2xl sm:max-h-[95vh] overflow-y-auto">
               {/* Modal Header */}
               <div className="bg-gradient-to-r from-green-50 to-blue-50 border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between sticky top-0 z-10">
@@ -783,25 +933,27 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Mehmonlar Soni
+                        Mehmonlar Soni *
                       </label>
                       <input
                         type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
-                        value={guestCount}
+                        value={guestCount === 0 ? '' : guestCount}
                         onChange={(e) => {
                           const value = e.target.value;
-                          // Faqat raqamlarni qabul qilish va bo'sh stringni oldini olish
+                          // Faqat raqamlarni qabul qilish
                           if (value === '' || /^\d+$/.test(value)) {
-                            const numValue = value === '' ? 10 : Number(value);
-                            // Minimum 10, maksimum 1000
-                            if (numValue >= 10 && numValue <= 1000) {
-                              setGuestCount(numValue);
-                            } else if (numValue < 10 && value !== '') {
-                              setGuestCount(10);
-                            } else if (numValue > 1000) {
-                              setGuestCount(1000);
+                            if (value === '') {
+                              setGuestCount(0); // Bo'sh qoldirish majburiy maydon uchun
+                            } else {
+                              const numValue = Number(value);
+                              // Minimum 1, maksimum 1000
+                              if (numValue >= 1 && numValue <= 1000) {
+                                setGuestCount(numValue);
+                              } else if (numValue > 1000) {
+                                setGuestCount(1000);
+                              }
                             }
                           }
                         }}
@@ -812,55 +964,101 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             e.preventDefault();
                           }
                         }}
-                        placeholder="50"
+                        placeholder="Masalan: 50"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
                       />
                       <p className="mt-1 text-xs text-gray-500">
-                        Minimum 10, maksimum 1000 kishi
+                        Majburiy maydon. Minimum 1, maksimum 1000 kishi
                       </p>
                     </div>
 
                     <div className="space-y-3">
-                      {pricingPackages.map(pkg => (
-                        <div
-                          key={pkg.id}
-                          onClick={() => setSelectedPricing(pkg)}
-                          className={`p-3 sm:p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                            selectedPricing?.id === pkg.id
-                              ? 'border-blue-500 bg-blue-50'
-                              : pkg.color + ' hover:border-blue-300'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-bold text-gray-900 text-sm sm:text-base">{pkg.name}</h5>
-                            <div className="text-right">
-                              <div className="font-bold text-lg text-blue-600">${pkg.price}</div>
-                              <div className="text-xs text-gray-600">per person</div>
-                            </div>
-                          </div>
-                          <p className="text-xs sm:text-sm text-gray-600 mb-2">{pkg.description}</p>
-                          <div className="space-y-1">
-                            {pkg.includes.slice(0, 3).map((item, idx) => (
-                              <div key={idx} className="flex items-center text-xs text-gray-700">
-                                <Check className="w-3 h-3 text-green-500 mr-1 flex-shrink-0" />
-                                <span>{item}</span>
+                      {pricingPackages.map(pkg => {
+                        const isExpanded = expandedPackage === pkg.id;
+                        const isSelected = selectedPricing?.id === pkg.id;
+
+                        return (
+                          <div
+                            key={pkg.id}
+                            className={`rounded-lg border-2 transition-all ${
+                              isSelected
+                                ? 'border-blue-500 bg-blue-50'
+                                : pkg.color + ' hover:border-blue-300'
+                            }`}
+                          >
+                            {/* Package Header - Always visible and clickable for selection */}
+                            <div
+                              onClick={() => {
+                                // Toggle selection instead of expanding
+                                setSelectedPricing(isSelected ? null : pkg);
+                                // Also expand/collapse
+                                setExpandedPackage(isExpanded ? '' : pkg.id);
+                              }}
+                              className="p-3 sm:p-4 cursor-pointer hover:bg-opacity-80 transition-colors"
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-2">
+                                  <h5 className={`font-bold text-sm sm:text-base ${isSelected ? 'text-blue-700' : 'text-gray-900'}`}>{pkg.name}</h5>
+                                  {isSelected && (
+                                    <div className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center">
+                                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                      </svg>
+                                    </div>
+                                  )}
+                                  <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className={`font-bold text-lg ${isSelected ? 'text-blue-700' : 'text-blue-600'}`}>${pkg.price}</div>
+                                  <div className="text-xs text-gray-600">per person</div>
+                                </div>
                               </div>
-                            ))}
-                            {pkg.includes.length > 3 && (
-                              <div className="text-xs text-gray-500">
-                                +{pkg.includes.length - 3} ko'proq
+                              <p className="text-xs sm:text-sm text-gray-600">{pkg.description}</p>
+                            </div>
+
+                            {/* Package Details - Collapsible */}
+                            {isExpanded && (
+                              <div className="px-3 sm:px-4 pb-3 sm:pb-4 border-t border-gray-200 bg-white bg-opacity-50">
+                                <div className="space-y-2 mt-3">
+                                  <h6 className="font-medium text-gray-800 text-sm">Paketga kiradigan xizmatlar:</h6>
+                                  <div className="space-y-1">
+                                    {pkg.includes.map((item, idx) => (
+                                      <div key={idx} className="flex items-center text-xs text-gray-700">
+                                        <Check className="w-3 h-3 text-green-500 mr-2 flex-shrink-0" />
+                                        <span>{item}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  {/* Price Summary - Only show when selected */}
+                                  {isSelected && (
+                                    <div className="pt-3 border-t border-gray-200">
+                                      <div className={`font-bold text-center ${
+                                        guestCount === 0 ? 'text-red-600' : 'text-green-600'
+                                      }`}>
+                                        Jami: ${guestCount === 0 ? 0 : pkg.price * guestCount}
+                                      </div>
+                                      <div className={`text-xs text-center ${
+                                        guestCount === 0 ? 'text-red-600' : 'text-gray-600'
+                                      }`}>
+                                        {guestCount === 0
+                                          ? 'Mehmonlar sonini kiriting!'
+                                          : `$${pkg.price} × ${guestCount} kishi`
+                                        }
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>
-                          {selectedPricing?.id === pkg.id && (
-                            <div className="mt-2 pt-2 border-t border-gray-200">
-                              <div className="font-bold text-green-600">
-                                Jami: ${pkg.price * guestCount}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -954,7 +1152,11 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     <div className="bg-white border rounded-lg p-4 space-y-3">
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">Mehmonlar:</span>
-                        <span className="font-medium">{guestCount} kishi</span>
+                        <span className={`font-medium ${
+                          guestCount === 0 ? 'text-red-600' : 'text-gray-900'
+                        }`}>
+                          {guestCount === 0 ? 'Kiriting!' : `${guestCount} kishi`}
+                        </span>
                       </div>
 
                       {selectedPricing && (
@@ -962,11 +1164,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-sm font-medium">{selectedPricing.name}</span>
                             <span className="font-bold text-blue-600">
-                              ${selectedPricing.price * guestCount}
+                              ${guestCount === 0 ? 0 : selectedPricing.price * guestCount}
                             </span>
                           </div>
                           <div className="text-xs text-gray-600">
-                            ${selectedPricing.price} × {guestCount} kishi
+                            {guestCount === 0
+                              ? 'Mehmonlar soni belgilanmagan'
+                              : `$${selectedPricing.price} × ${guestCount} kishi`
+                            }
                           </div>
                         </div>
                       )}
@@ -994,9 +1199,18 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
 
                       <button
                         onClick={() => {
-                          alert(`Hisob-kitob:\nMehmonlar: ${guestCount}\nJami summa: $${calculateTotal()}`);
+                          if (guestCount === 0) {
+                            alert('Iltimos mehmonlar sonini kiriting!');
+                            return;
+                          }
+                          setShowSaveCalculationModal(true);
                         }}
-                        className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                        disabled={guestCount === 0}
+                        className={`w-full py-2 rounded-lg transition-colors text-sm font-medium ${
+                          guestCount === 0
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : 'bg-green-600 text-white hover:bg-green-700'
+                        }`}
                       >
                         Hisob-kitobni Saqlash
                       </button>
@@ -1027,9 +1241,93 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg sm:text-2xl font-bold text-gray-900 flex items-center">
                     <Clock className="w-5 h-5 sm:w-7 sm:h-7 mr-2 sm:mr-3 text-blue-600 flex-shrink-0" />
-                    <span className="truncate">Vaqt va Ma'lumotlarni To'ldiring</span>
+                    <span className="truncate">
+                      {(() => {
+                        if (!selectedDate) return "Vaqt va Ma'lumotlarni To'ldiring";
+
+                        // Band qilingan vaqtlarni tekshirish
+                        const allTimeSlots = Array.from({ length: 15 }, (_, i) => {
+                          const hour = i + 8;
+                          if (hour > 22) return null;
+                          return `${hour.toString().padStart(2, '0')}:00`;
+                        }).filter(Boolean);
+
+                        const dayBookings = bookedTimeSlots.filter(slot => slot.date === selectedDate);
+                        const bookedHours = new Set();
+
+                        dayBookings.forEach(booking => {
+                          const [startHour] = booking.time.split(':').map(Number);
+                          const [endHour, endMin] = booking.endTime.split(':').map(Number);
+
+                          for (let hour = startHour; hour < endHour || (hour === endHour && endMin > 0); hour++) {
+                            if (hour < endHour) {
+                              bookedHours.add(`${hour.toString().padStart(2, '0')}:00`);
+                            } else if (hour === endHour && endMin > 0) {
+                              // Tugash soati qisman band (faqat daqiqalargacha)
+                              bookedHours.add(`${hour.toString().padStart(2, '0')}:00`);
+                            }
+                          }
+                        });
+
+                        const isFullyBooked = allTimeSlots.every(time => bookedHours.has(time));
+                        const isPartiallyBooked = bookedHours.size > 0 && !isFullyBooked;
+
+                        if (isFullyBooked) {
+                          return "Band Qilingan Kun - Vaqt Tanlash";
+                        } else if (isPartiallyBooked) {
+                          return "Qisman Band Qilingan Kun - Vaqt Tanlash";
+                        } else {
+                          return "Vaqt va Ma'lumotlarni To'ldiring";
+                        }
+                      })()}
+                    </span>
                   </h3>
-                  <p className="text-gray-600 mt-1 text-sm sm:text-base hidden sm:block">Kerakli vaqt va shaxsiy ma'lumotlaringizni kiriting</p>
+                  <p className="text-gray-600 mt-1 text-sm sm:text-base hidden sm:block">
+                    {(() => {
+                      if (!selectedDate) return "Kerakli vaqt va shaxsiy ma'lumotlaringizni kiriting";
+
+                      // Band qilingan vaqtlarni tekshirish
+                      const allTimeSlots = Array.from({ length: 15 }, (_, i) => {
+                        const hour = i + 8;
+                        if (hour > 22) return null;
+                        return `${hour.toString().padStart(2, '0')}:00`;
+                      }).filter(Boolean);
+
+                      const dayBookings = bookedTimeSlots.filter(slot => slot.date === selectedDate);
+                      const bookedHours = new Set();
+
+                      dayBookings.forEach(booking => {
+                        const [startHour] = booking.time.split(':').map(Number);
+                        const [endHour, endMin] = booking.endTime.split(':').map(Number);
+
+                        for (let hour = startHour; hour < endHour || (hour === endHour && endMin > 0); hour++) {
+                          if (hour < endHour) {
+                            bookedHours.add(`${hour.toString().padStart(2, '0')}:00`);
+                          } else if (hour === endHour && endMin > 0) {
+                            // Tugash soati qisman band (faqat daqiqalargacha)
+                            bookedHours.add(`${hour.toString().padStart(2, '0')}:00`);
+                          }
+                        }
+                      });
+
+                      const isFullyBooked = allTimeSlots.every(time => bookedHours.has(time));
+                      const isPartiallyBooked = bookedHours.size > 0 && !isFullyBooked;
+
+                      if (isFullyBooked) {
+                        return `${new Date(selectedDate).toLocaleDateString('uz-UZ', {
+                          day: 'numeric',
+                          month: 'long'
+                        })} kuni to'liq band qilingan. Boshqa vaqtni tanlang.`;
+                      } else if (isPartiallyBooked) {
+                        return `${new Date(selectedDate).toLocaleDateString('uz-UZ', {
+                          day: 'numeric',
+                          month: 'long'
+                        })} kuni qisman band qilingan. Mavjud vaqtlarni ko'ring.`;
+                      } else {
+                        return "Kerakli vaqt va shaxsiy ma'lumotlaringizni kiriting";
+                      }
+                    })()}
+                  </p>
                 </div>
                 <button
                   onClick={() => setShowBookingModal(false)}
@@ -1067,57 +1365,143 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                             const timeStr = `${hour.toString().padStart(2, '0')}:00`;
                             const dayData = getSelectedDayAvailability();
 
-                            // Band qilingan vaqtni tekshirish - vaqt oralig'i ichida yotganini tekshirish
-                            const bookedSlot = bookedTimeSlots.find(slot => {
-                              if (slot.date !== selectedDate) return false;
+                            // Soat uchun band qilingan daqiqalarni hisoblash
+                            const hourStartMinutes = hour * 60;
+                            const hourEndMinutes = hour * 60 + 59;
 
-                              // Hozirgi vaqt slot time va endTime oralig'ida yotadimi?
-                              const slotStartMinutes = parseInt(slot.time.split(':')[0]) * 60 + parseInt(slot.time.split(':')[1]);
-                              const slotEndMinutes = parseInt(slot.endTime.split(':')[0]) * 60 + parseInt(slot.endTime.split(':')[1]);
-                              const checkTimeMinutes = hour * 60;
+                            let totalBookedMinutes = 0;
 
-                              // Agar hozirgi vaqt band qilingan oraliq ichida bo'lsa
-                              return checkTimeMinutes >= slotStartMinutes && checkTimeMinutes < slotEndMinutes;
+                            bookedTimeSlots.forEach(slot => {
+                              if (slot.date !== selectedDate) return;
+
+                              const [bookingStartHour, bookingStartMin] = slot.time.split(':').map(Number);
+                              const [bookingEndHour, bookingEndMin] = slot.endTime.split(':').map(Number);
+                              const bookingStartMinutes = bookingStartHour * 60 + bookingStartMin;
+                              const bookingEndMinutes = bookingEndHour * 60 + bookingEndMin;
+
+                              // Agar booking bu soatni qamrab olsa
+                              if (bookingStartMinutes <= hourEndMinutes && bookingEndMinutes >= hourStartMinutes) {
+                                const overlapStart = Math.max(hourStartMinutes, bookingStartMinutes);
+                                const overlapEnd = Math.min(hourEndMinutes + 1, bookingEndMinutes); // +1 chunki soat 59 daqiqagacha
+                                const overlapDuration = Math.max(0, overlapEnd - overlapStart);
+                                totalBookedMinutes += overlapDuration;
+                              }
                             });
 
-                            const isBooked = dayData?.timeSlots.some(slot =>
+                            // Qisman mavjud vaqtni tekshirish - soat ichida mavjud daqiqalar bormi?
+                            const partiallyAvailable = totalBookedMinutes > 0 && totalBookedMinutes < 60 && bookedTimeSlots.find(slot => {
+                              if (slot.date !== selectedDate) return false;
+
+                              const [endHour, endMin] = slot.endTime.split(':').map(Number);
+                              // Agar slot tugash vaqti hozirgi soat ichida bo'lsa va mavjud vaqt qolsa
+                              return endHour === hour && endMin > 0;
+                            });
+
+                            const isBooked = totalBookedMinutes >= 60 || dayData?.timeSlots.some(slot =>
                               slot.time === timeStr && slot.booked
-                            ) || !!bookedSlot;
+                            );
+
+                            // Tanlangan vaqt oralig'ini tekshirish - butun tanlangan oraliqni ko'rsatish
+                            const isInSelectedRange = selectedTime && selectedEndTime && (() => {
+                              const [startHour] = selectedTime.split(':').map(Number);
+                              const [endHour] = selectedEndTime.split(':').map(Number);
+
+                              // Tanlangan vaqt oralig'idagi faqat band qilinayotgan soatlarni ko'rsatish
+                              // Tugash vaqti alohida ko'rsatiladi
+                              // Masalan: 08:00-09:00 tanlanganda faqat 08:00 to'liq ko'k, 09:00 tugash indikatori
+                              return hour >= startHour && hour < endHour;
+                            })();
+
+                            // Vaqt tanlanmoqda holatini tekshirish (davomiylik modal ochiq va temp vaqt belgilangan)
+                            const isBeingSelected = showDurationModal && tempStartTime === timeStr;
+
+                            // Tugash vaqti indikatorini tekshirish
+                            const isEndTimeIndicator = selectedTime && selectedEndTime && (() => {
+                              const [endHour] = selectedEndTime.split(':').map(Number);
+                              return hour === endHour;
+                            })();
 
                             return (
                               <button
                                 key={hour}
                                 onClick={() => {
-                                  if (bookedSlot) {
-                                    // Band qilingan vaqtni bosganida tafsilotlarni ko'rsatish
-                                    setSelectedBookingDetails(bookedSlot);
-                                    setShowBookingDetailsModal(true);
-                                  } else if (!isBooked) {
-                                    handleTimeClick(timeStr);
+                                  if (!isBooked || partiallyAvailable) {
+                                    if (partiallyAvailable) {
+                                      // Qisman mavjud vaqt uchun boshlanish vaqtini tugash vaqtiga o'rnatish
+                                      const availableTime = partiallyAvailable.endTime;
+                                      handleTimeClick(availableTime);
+                                    } else {
+                                      handleTimeClick(timeStr);
+                                    }
                                   }
                                 }}
                                 className={`
                                   px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg transition-all border-2 relative
-                                  ${bookedSlot
-                                    ? 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200 cursor-pointer'
+                                  ${partiallyAvailable
+                                    ? 'bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200 cursor-pointer'
                                     : isBooked
                                       ? 'bg-red-100 text-red-600 border-red-300 cursor-not-allowed'
-                                      : 'bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:border-green-400'
-                                  }
+                                      : isBeingSelected
+                                        ? 'bg-yellow-200 text-yellow-800 border-yellow-400 shadow-lg ring-2 ring-yellow-300'
+                                        : isEndTimeIndicator
+                                          ? 'bg-blue-200 text-blue-800 border-blue-400 shadow-lg ring-2 ring-blue-300'
+                                          : isInSelectedRange && !isEndTimeIndicator
+                                            ? 'bg-blue-200 text-blue-800 border-blue-400 shadow-lg ring-2 ring-blue-300'
+                                            : 'bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:border-green-400'
+                                    }
                                 `}
                               >
-                                {timeStr}
-                                {bookedSlot && (
-                                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <div className="flex flex-col items-center">
+                                  {timeStr}
+                                  {partiallyAvailable && (
+                                    <div className="text-xs text-orange-600 mt-1">
+                                      {partiallyAvailable.endTime} dan
+                                    </div>
+                                  )}
+                                </div>
+                                {isBooked && !partiallyAvailable && (
+                                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
+                                )}
+                                {partiallyAvailable && (
+                                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full"></div>
+                                )}
+                                {isBeingSelected && (
+                                  <div className="absolute -top-1 -left-1 w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                                )}
+                                {isInSelectedRange && (
+                                  <div className="absolute -top-1 -left-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                                )}
+                                {/* Tanlangan oraliq tugashi indikatori */}
+                                {selectedTime && selectedEndTime && (() => {
+                                  const [endHour] = selectedEndTime.split(':').map(Number);
+                                  return hour === endHour;
+                                })() && (
+                                  <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-blue-300 rounded-full"></div>
                                 )}
                               </button>
                             );
                           })}
                         </div>
-                        <div className="flex items-center justify-center space-x-3 sm:space-x-6 mt-3 sm:mt-4 text-xs sm:text-sm">
+                        <div className="flex items-center justify-center space-x-2 sm:space-x-4 mt-3 sm:mt-4 text-xs sm:text-sm flex-wrap gap-1">
                           <div className="flex items-center space-x-1 sm:space-x-2">
                             <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full"></div>
                             <span className="text-gray-700">Mavjud</span>
+                          </div>
+                          <div className="flex items-center space-x-1 sm:space-x-2">
+                            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-400 rounded-full"></div>
+                            <span className="text-gray-700">Qisman mavjud</span>
+                          </div>
+                          <div className="flex items-center space-x-1 sm:space-x-2">
+                            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                            <span className="text-gray-700">Davomiylik tanlanmoqda</span>
+                          </div>
+                          <div className="flex items-center space-x-1 sm:space-x-2">
+                            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-400 rounded-full animate-pulse"></div>
+                            <span className="text-gray-700">Band qilinayotgan</span>
+                          </div>
+                          <div className="flex items-center space-x-1 sm:space-x-2">
+                            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-400 rounded-full"></div>
+                            <span className="text-gray-700">Tugash vaqti</span>
                           </div>
                           <div className="flex items-center space-x-1 sm:space-x-2">
                             <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-400 rounded-full"></div>
@@ -1128,48 +1512,100 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                     </div>
                   )}
 
-                  <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 space-y-1 sm:space-y-0">
-                      <span className="text-gray-600 font-medium text-sm sm:text-base">Tanlangan vaqt:</span>
-                      <span className="font-bold text-base sm:text-xl text-blue-600">
-                        {selectedTime && selectedEndTime
-                          ? `${selectedTime} - ${selectedEndTime}`
-                          : 'Vaqt tanlanmagan'}
-                      </span>
-                    </div>
-                    {selectedTime && selectedEndTime && (
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 space-y-1 sm:space-y-0">
-                        <span className="text-gray-600 font-medium text-sm sm:text-base">Davomiylik:</span>
-                        <span className="font-medium text-gray-900 text-sm sm:text-base">
-                          {(() => {
-                            const [startHour, startMin] = selectedTime.split(':').map(Number);
-                            const [endHour, endMin] = selectedEndTime.split(':').map(Number);
-                            const totalMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
-                            const hours = Math.floor(totalMinutes / 60);
-                            const minutes = totalMinutes % 60;
-                            return hours > 0 && minutes > 0
-                              ? `${hours} soat ${minutes} daqiqa`
-                              : hours > 0
-                                ? `${hours} soat`
-                                : `${minutes} daqiqa`;
-                          })()}
-                        </span>
+                  {/* Vaqt ma'lumotlarini faqat kun to'liq band qilinmagan holatda ko'rsatish */}
+                  {(() => {
+                    // Band qilingan vaqtlarni tekshirish
+                    const allTimeSlots = Array.from({ length: 15 }, (_, i) => {
+                      const hour = i + 8;
+                      if (hour > 22) return null;
+                      return `${hour.toString().padStart(2, '0')}:00`;
+                    }).filter(Boolean);
+
+                    const dayBookings = bookedTimeSlots.filter(slot => slot.date === selectedDate);
+                    const bookedHours = new Set();
+
+                    // Har bir soat uchun band qilingan daqiqalarni tekshirish
+                    for (let hour = 8; hour <= 22; hour++) {
+                      const hourStr = `${hour.toString().padStart(2, '0')}:00`;
+                      const hourStartMinutes = hour * 60;
+                      const hourEndMinutes = hour * 60 + 59;
+
+                      let coveredMinutes = 0;
+
+                      dayBookings.forEach(booking => {
+                        const [bookingStartHour, bookingStartMin] = booking.time.split(':').map(Number);
+                        const [bookingEndHour, bookingEndMin] = booking.endTime.split(':').map(Number);
+                        const bookingStartMinutes = bookingStartHour * 60 + bookingStartMin;
+                        const bookingEndMinutes = bookingEndHour * 60 + bookingEndMin;
+
+                        // Agar booking bu soatni qamrab olsa
+                        if (bookingStartMinutes <= hourEndMinutes && bookingEndMinutes >= hourStartMinutes) {
+                          const overlapStart = Math.max(hourStartMinutes, bookingStartMinutes);
+                          const overlapEnd = Math.min(hourEndMinutes + 1, bookingEndMinutes); // +1 chunki soat 59 daqiqagacha
+                          const overlapDuration = Math.max(0, overlapEnd - overlapStart);
+                          coveredMinutes += overlapDuration;
+                        }
+                      });
+
+                      // Agar soatning 60 daqiqasi to'liq yoki deyarli to'liq band bo'lsa
+                      if (coveredMinutes >= 60) {
+                        bookedHours.add(hourStr);
+                      }
+                    }
+
+                    const isFullyBooked = allTimeSlots.every(time => bookedHours.has(time));
+
+                    // To'liq band qilingan kunlar uchun hech narsa ko'rsatmaslik
+                    if (isFullyBooked) {
+                      return null;
+                    }
+
+                    // Qisman band yoki mavjud kunlar uchun forma ko'rsatish
+                    return (
+                      <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 space-y-1 sm:space-y-0">
+                          <span className="text-gray-600 font-medium text-sm sm:text-base">Tanlangan vaqt oralig'i:</span>
+                          <span className="font-bold text-base sm:text-xl text-blue-600">
+                            {selectedTime && selectedEndTime
+                              ? `${selectedTime} - ${selectedEndTime}`
+                              : 'Vaqt oralig\'i tanlanmagan'}
+                          </span>
+                        </div>
+                        {selectedTime && selectedEndTime && (
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 space-y-1 sm:space-y-0">
+                            <span className="text-gray-600 font-medium text-sm sm:text-base">Davomiylik:</span>
+                            <span className="font-medium text-gray-900 text-sm sm:text-base">
+                              {(() => {
+                                const [startHour, startMin] = selectedTime.split(':').map(Number);
+                                const [endHour, endMin] = selectedEndTime.split(':').map(Number);
+                                const totalMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+                                const hours = Math.floor(totalMinutes / 60);
+                                const minutes = totalMinutes % 60;
+                                return hours > 0 && minutes > 0
+                                  ? `${hours} soat ${minutes} daqiqa`
+                                  : hours > 0
+                                    ? `${hours} soat`
+                                    : `${minutes} daqiqa`;
+                              })()}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
+                          <span className="text-gray-600 font-medium text-sm sm:text-base">Narx:</span>
+                          <span className="font-bold text-base sm:text-lg text-green-600">
+                            {selectedTime && selectedEndTime ? (() => {
+                              const [startHour] = selectedTime.split(':').map(Number);
+                              const [endHour, endMin] = selectedEndTime.split(':').map(Number);
+                              const totalMinutes = (endHour * 60 + endMin) - (startHour * 60);
+                              const hours = Math.ceil(totalMinutes / 60);
+                              const hourlyRate = startHour >= 18 ? 400 : startHour >= 10 ? 300 : 200;
+                              return `$${hours * hourlyRate}`;
+                            })() : '$0'}
+                          </span>
+                        </div>
                       </div>
-                    )}
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
-                      <span className="text-gray-600 font-medium text-sm sm:text-base">Narx:</span>
-                      <span className="font-bold text-base sm:text-lg text-green-600">
-                        {selectedTime && selectedEndTime ? (() => {
-                          const [startHour] = selectedTime.split(':').map(Number);
-                          const [endHour, endMin] = selectedEndTime.split(':').map(Number);
-                          const totalMinutes = (endHour * 60 + endMin) - (startHour * 60);
-                          const hours = Math.ceil(totalMinutes / 60);
-                          const hourlyRate = startHour >= 18 ? 400 : startHour >= 10 ? 300 : 200;
-                          return `$${hours * hourlyRate}`;
-                        })() : '$0'}
-                      </span>
-                    </div>
-                  </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Duration Modal */}
@@ -1200,107 +1636,221 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         </div>
 
                         <div className="space-y-4 sm:space-y-6">
-                          <div className="grid grid-cols-2 gap-4 sm:gap-6">
-                            {/* Soat tanlash */}
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Soat
-                              </label>
-                              <div className="relative">
-                                <select
-                                  value={selectedHours}
-                                  onChange={(e) => setSelectedHours(Number(e.target.value))}
-                                  className="w-full px-3 py-3 text-lg font-mono border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none cursor-pointer"
-                                >
-                                  {(() => {
-                                    const [startHour] = tempStartTime.split(':').map(Number);
-                                    const maxWorkHour = 23; // Ish vaqti 23:00 gacha
-                                    const maxPossibleHours = maxWorkHour - startHour; // Ish vaqti doirasida qolgan soatlar
-                                    const availableHours = Math.min(8, maxPossibleHours); // Maksimum 8 soat yoki ish vaqti oxirigacha
+                          {(() => {
+                            // Mavjud vaqtni hisoblash
+                            const [startHour, startMin] = tempStartTime.split(':').map(Number);
+                            const startTotalMinutes = startHour * 60 + startMin;
+                            const maxWorkMinutes = 23 * 60; // 23:00 = 1380 daqiqa
 
-                                    return Array.from({ length: availableHours }, (_, i) => i + 1).map(hour => (
-                                      <option key={hour} value={hour}>
-                                        {hour.toString().padStart(2, '0')}
-                                      </option>
-                                    ));
-                                  })()}
-                                </select>
-                                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                  </svg>
+                            // Band qilingan vaqtlarni tekshirish
+                            const dayBookings = bookedTimeSlots.filter(slot => slot.date === selectedDate);
+                            let maxAvailableMinutes = maxWorkMinutes;
+
+                            dayBookings.forEach(booking => {
+                              const [bookingStartHour, bookingStartMin] = booking.time.split(':').map(Number);
+                              const bookingStartMinutes = bookingStartHour * 60 + bookingStartMin;
+
+                              // Agar booking boshlanish vaqtidan keyin boshlanayotgan bo'lsa
+                              if (bookingStartMinutes > startTotalMinutes) {
+                                maxAvailableMinutes = Math.min(maxAvailableMinutes, bookingStartMinutes);
+                              }
+                            });
+
+                            // Mavjud vaqt daqiqalarda
+                            const availableMinutes = maxAvailableMinutes - startTotalMinutes;
+                            const isShortTimeSlot = availableMinutes < 60;
+
+                            if (isShortTimeSlot) {
+                              // Qisqa vaqt oralig'i - faqat daqiqalar, soat tanlovchisiz
+                              // Soatni 0 ga o'rnatish va faqat daqiqalar bilan ishlash
+                              if (selectedHours !== 0) {
+                                setTimeout(() => {
+                                  setSelectedHours(0);
+                                }, 0);
+                              }
+                              
+                              return (
+                                <div className="w-full">
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Davomiylik (daqiqa)
+                                  </label>
+                                  <div className="relative">
+                                    <select
+                                      value={selectedMinutes}
+                                      onChange={(e) => {
+                                        setSelectedHours(0); // Soatni har doim 0 da ushlab turish
+                                        setSelectedMinutes(Number(e.target.value));
+                                      }}
+                                      className="w-full px-3 py-3 text-lg font-mono border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none cursor-pointer"
+                                    >
+                                      {(() => {
+                                        // Faqat mavjud daqiqalarni ko'rsatish (15 daqiqa intervallarda)
+                                        const possibleMinutes = [];
+                                        for (let minute = 15; minute <= availableMinutes && minute < 60; minute += 15) {
+                                          possibleMinutes.push(minute);
+                                        }
+                                        
+                                        // Agar hozirgi tanlangan daqiqa mavjud emas bo'lsa, birinchi mavjud daqiqani tanlash
+                                        if (possibleMinutes.length > 0 && !possibleMinutes.includes(selectedMinutes)) {
+                                          setTimeout(() => {
+                                            setSelectedHours(0);
+                                            setSelectedMinutes(possibleMinutes[0]);
+                                          }, 0);
+                                        }
+
+                                        return possibleMinutes.map(minute => (
+                                          <option key={minute} value={minute}>
+                                            {minute} daqiqa
+                                          </option>
+                                        ));
+                                      })()}
+                                    </select>
+                                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                      </svg>
+                                    </div>
+                                  </div>
+                                  <div className="mt-2 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                    Mavjud vaqt: {availableMinutes} daqiqa
+                                  </div>
+                                  <div className="mt-2 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
+                                    Qisqa vaqt oralig'i: Faqat daqiqalar tanlanadi
+                                  </div>
                                 </div>
-                              </div>
-                            </div>
+                              );
+                            } else {
+                              // Uzun vaqt oralig'i - soat va daqiqalar
+                              return (
+                                <div className="grid grid-cols-2 gap-4 sm:gap-6">
+                                  {/* Soat tanlash */}
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Soat
+                                    </label>
+                                    <div className="relative">
+                                      <select
+                                        value={selectedHours}
+                                        onChange={(e) => setSelectedHours(Number(e.target.value))}
+                                        className="w-full px-3 py-3 text-lg font-mono border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none cursor-pointer"
+                                      >
+                                        {(() => {
+                                          const maxHours = Math.min(8, Math.floor(availableMinutes / 60)); // Maksimum 8 soat
+                                          return Array.from({ length: maxHours + 1 }, (_, i) => i).map(hour => (
+                                            <option key={hour} value={hour}>
+                                              {hour.toString().padStart(2, '0')}
+                                            </option>
+                                          ));
+                                        })()}
+                                      </select>
+                                      <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                      </div>
+                                    </div>
+                                  </div>
 
-                            {/* Daqiqa tanlash */}
-                            <div>
+                                  {/* Daqiqa tanlash */}
+                                  <div>
                               <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Daqiqa
-                              </label>
-                              <div className="relative">
-                                <select
-                                  value={selectedMinutes}
-                                  onChange={(e) => setSelectedMinutes(Number(e.target.value))}
-                                  className="w-full px-3 py-3 text-lg font-mono border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none cursor-pointer"
-                                >
-                                  {(() => {
-                                    const [startHour, startMin] = tempStartTime.split(':').map(Number);
-                                    const startTotalMinutes = startHour * 60 + startMin;
-                                    const maxWorkMinutes = 23 * 60; // 23:00 = 1380 daqiqa
-                                    const availableMinutes = [0, 15, 30, 45];
+                                      Daqiqa
+                                    </label>
+                                    <div className="relative">
+                                      <select
+                                        value={selectedMinutes}
+                                        onChange={(e) => setSelectedMinutes(Number(e.target.value))}
+                                        className="w-full px-3 py-3 text-lg font-mono border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none cursor-pointer"
+                                      >
+                                        {(() => {
+                                          const availableTimeMinutes = availableMinutes;
+                                          const standardMinutes = [0, 15, 30, 45];
 
-                                    // Mavjud daqiqalarni filtrlash
-                                    const filteredMinutes = availableMinutes.filter(minute => {
-                                      const totalDuration = selectedHours * 60 + minute;
-                                      const endTime = startTotalMinutes + totalDuration;
-                                      return endTime <= maxWorkMinutes;
-                                    });
+                                          // Oddiy holat - soat tanlangan yoki yetarli vaqt mavjud
+                                          const minimumMinutes = selectedHours === 0 ? 15 : 0;
+                                          const validMinutes = selectedHours === 0 ? [15, 30, 45] : standardMinutes;
 
-                                    // Agar hozirgi tanlangan daqiqa mavjud emas bo'lsa, birinchi mavjud daqiqani tanlash
-                                    if (filteredMinutes.length > 0 && !filteredMinutes.includes(selectedMinutes)) {
-                                      // State ni o'zgartirish uchun setTimeout ishlatamiz
-                                      setTimeout(() => {
-                                        setSelectedMinutes(filteredMinutes[0]);
-                                      }, 0);
-                                    }
+                                          const filteredMinutes = validMinutes.filter(minute => {
+                                            const totalDuration = selectedHours * 60 + minute;
+                                            const endTime = startTotalMinutes + totalDuration;
+                                            return endTime <= maxAvailableMinutes && totalDuration >= minimumMinutes;
+                                          });
 
-                                    return filteredMinutes.map(minute => (
-                                      <option key={minute} value={minute}>
-                                        {minute.toString().padStart(2, '0')}
-                                      </option>
-                                    ));
-                                  })()}
-                                </select>
-                                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                  </svg>
+                                          // Agar hozirgi tanlangan daqiqa mavjud emas bo'lsa, birinchi mavjud daqiqani tanlash
+                                          if (filteredMinutes.length > 0 && !filteredMinutes.includes(selectedMinutes)) {
+                                            // State ni o'zgartirish uchun setTimeout ishlatamiz
+                                            setTimeout(() => {
+                                              setSelectedMinutes(filteredMinutes[0]);
+                                            }, 0);
+                                          }
+
+                                          return filteredMinutes.map(minute => (
+                                            <option key={minute} value={minute}>
+                                              {minute.toString().padStart(2, '0')}
+                                            </option>
+                                          ));
+                                        })()}
+                                      </select>
+                                      <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
-                            </div>
-                          </div>
+                              );
+                            }
+                          })()}
                         </div>
 
                         {/* Preview */}
                         <div className="mt-3 sm:mt-4 bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
                           <div className="text-center">
-                            <div className="text-xs sm:text-sm text-green-600 mb-1">Jami davomiylik</div>
+                            <div className="text-xs sm:text-sm text-green-600 mb-1">Tanlangan Vaqt Oralig'i</div>
                             <div className="text-base sm:text-lg font-bold text-green-800">
-                              {selectedHours > 0 && selectedMinutes > 0
-                                ? `${selectedHours} soat ${selectedMinutes} daqiqa`
-                                : selectedHours > 0
-                                  ? `${selectedHours} soat`
-                                  : `${selectedMinutes} daqiqa`}
-                            </div>
-                            <div className="text-xs sm:text-sm text-green-600 mt-2">
-                              Tugash: {(() => {
+                              {tempStartTime} - {(() => {
                                 const [startHour, startMin] = tempStartTime.split(':').map(Number);
                                 const totalMinutes = startHour * 60 + startMin + selectedHours * 60 + selectedMinutes;
                                 const endHour = Math.floor(totalMinutes / 60);
                                 const endMin = totalMinutes % 60;
+                                
+                                // 23:00 dan oshmasligini ta'minlash
+                                if (endHour >= 23 && endMin > 0) {
+                                  return "23:00";
+                                }
+                                if (endHour > 23) {
+                                  return "23:00";
+                                }
+                                
                                 return `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`;
                               })()}
+                            </div>
+                            <div className="text-xs sm:text-sm text-green-600 mt-1">
+                              Davomiylik: {(() => {
+                                const [startHour, startMin] = tempStartTime.split(':').map(Number);
+                                const totalMinutes = startHour * 60 + startMin + selectedHours * 60 + selectedMinutes;
+                                const startTotalMinutes = startHour * 60 + startMin;
+                                const actualDuration = totalMinutes - startTotalMinutes;
+                                const hours = Math.floor(actualDuration / 60);
+                                const minutes = actualDuration % 60;
+                                
+                                if (hours > 0 && minutes > 0) {
+                                  return `${hours} soat ${minutes} daqiqa`;
+                                } else if (hours > 0) {
+                                  return `${hours} soat`;
+                                } else if (minutes > 0) {
+                                  return `${minutes} daqiqa`;
+                                } else {
+                                  return 'Minimum 15 daqiqa';
+                                }
+                              })()}
+                            </div>
+                            <div className="text-xs sm:text-sm text-green-500 mt-2 px-2 py-1 bg-green-100 rounded">
+                              Misol: 1 soat tanlanganda {tempStartTime} dan {(() => {
+                                const [startHour] = tempStartTime.split(':').map(Number);
+                                return `${(startHour + 1).toString().padStart(2, '0')}:00`;
+                              })()} gacha vaqt band qilinadi
                             </div>
                           </div>
                         </div>
@@ -1318,9 +1868,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                         </button>
                         <button
                           onClick={handleDurationConfirm}
-                          disabled={selectedHours === 0 && selectedMinutes === 0}
+                          disabled={selectedHours === 0 && selectedMinutes < 15}
                           className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-colors text-sm sm:text-base ${
-                            selectedHours === 0 && selectedMinutes === 0
+                            selectedHours === 0 && selectedMinutes < 15
                               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                               : 'bg-blue-600 text-white hover:bg-blue-700'
                           }`}
@@ -1333,119 +1883,181 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
                 )}
               </div>
 
-              {/* Right side - Client Form */}
+              {/* Right side - Client Form or Booking Info */}
               <div className="space-y-4 sm:space-y-6">
-                <div className="bg-white rounded-lg p-3 sm:p-6 border shadow-sm">
-                  <h4 className="font-bold text-gray-900 mb-3 sm:mb-4 flex items-center text-base sm:text-lg">
-                    <Users className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-600" />
-                    Shaxsiy Ma'lumotlar
-                  </h4>
+                {(() => {
+                  // Check if the selected date is fully booked
+                  if (!selectedDate) {
+                    return (
+                      <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 text-center">
+                        <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                        <h4 className="font-bold text-gray-600 text-lg mb-2">Sana Tanlanmagan</h4>
+                        <p className="text-gray-500">Iltimos, avval kalendardan sana tanlang</p>
+                      </div>
+                    );
+                  }
 
-                  <div className="space-y-3 sm:space-y-4">
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                        Ism Familiya *
-                      </label>
-                      <input
-                        type="text"
-                        value={clientName}
-                        onChange={(e) => setClientName(e.target.value)}
-                        placeholder="Ismingiz va familiyangizni kiriting"
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                        required
-                      />
-                    </div>
+                  // Calculate if date is fully booked
+                  const allTimeSlots = Array.from({ length: 15 }, (_, i) => {
+                    const hour = i + 8;
+                    if (hour > 22) return null;
+                    return `${hour.toString().padStart(2, '0')}:00`;
+                  }).filter(Boolean);
 
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                        Telefon Raqam *
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
-                          <span className="text-gray-500 text-sm sm:text-base">+998</span>
+                  const dayBookings = bookedTimeSlots.filter(slot => slot.date === selectedDate);
+                  const bookedHours = new Set();
+
+                  // Har bir soat uchun band qilingan daqiqalarni tekshirish
+                  for (let hour = 8; hour <= 22; hour++) {
+                    const hourStr = `${hour.toString().padStart(2, '0')}:00`;
+                    const hourStartMinutes = hour * 60;
+                    const hourEndMinutes = hour * 60 + 59;
+
+                    let coveredMinutes = 0;
+
+                    dayBookings.forEach(booking => {
+                      const [bookingStartHour, bookingStartMin] = booking.time.split(':').map(Number);
+                      const [bookingEndHour, bookingEndMin] = booking.endTime.split(':').map(Number);
+                      const bookingStartMinutes = bookingStartHour * 60 + bookingStartMin;
+                      const bookingEndMinutes = bookingEndHour * 60 + bookingEndMin;
+
+                      // Agar booking bu soatni qamrab olsa
+                      if (bookingStartMinutes <= hourEndMinutes && bookingEndMinutes >= hourStartMinutes) {
+                        const overlapStart = Math.max(hourStartMinutes, bookingStartMinutes);
+                        const overlapEnd = Math.min(hourEndMinutes + 1, bookingEndMinutes); // +1 chunki soat 59 daqiqagacha
+                        const overlapDuration = Math.max(0, overlapEnd - overlapStart);
+                        coveredMinutes += overlapDuration;
+                      }
+                    });
+
+                    // Agar soatning 60 daqiqasi to'liq yoki deyarli to'liq band bo'lsa
+                    if (coveredMinutes >= 60) {
+                      bookedHours.add(hourStr);
+                    }
+                  }
+
+                  const isFullyBooked = allTimeSlots.every(time => bookedHours.has(time));
+
+                  // To'liq band qilingan kunlar uchun hech narsa ko'rsatmaslik
+                  if (isFullyBooked) {
+                    return null;
+                  }
+
+                  // Qisman band yoki mavjud kunlar uchun forma ko'rsatish
+                  return (
+                    <>
+                      <div className="bg-white rounded-lg p-3 sm:p-6 border shadow-sm">
+                        <h4 className="font-bold text-gray-900 mb-3 sm:mb-4 flex items-center text-base sm:text-lg">
+                          <Users className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-600" />
+                          Shaxsiy Ma'lumotlar
+                        </h4>
+
+                        <div className="space-y-3 sm:space-y-4">
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                              Ism Familiya *
+                            </label>
+                            <input
+                              type="text"
+                              value={clientName}
+                              onChange={(e) => setClientName(e.target.value)}
+                              placeholder="Ismingiz va familiyangizni kiriting"
+                              className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                              Telefon Raqam *
+                            </label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
+                                <span className="text-gray-500 text-sm sm:text-base">+998</span>
+                              </div>
+                              <input
+                                type="tel"
+                                value={clientPhone}
+                                onChange={(e) => {
+                                  let value = e.target.value.replace(/[^\d\s]/g, '');
+                                  const numbersOnly = value.replace(/\s/g, '');
+
+                                  // Maksimum 9 ta raqam
+                                  if (numbersOnly.length <= 9) {
+                                    // Avtomatik formatlash: XX XXX XX XX
+                                    if (numbersOnly.length >= 2) {
+                                      value = numbersOnly.substring(0, 2);
+                                      if (numbersOnly.length >= 3) {
+                                        value += ' ' + numbersOnly.substring(2, 5);
+                                      }
+                                      if (numbersOnly.length >= 6) {
+                                        value += ' ' + numbersOnly.substring(5, 7);
+                                      }
+                                      if (numbersOnly.length >= 8) {
+                                        value += ' ' + numbersOnly.substring(7, 9);
+                                      }
+                                    } else {
+                                      value = numbersOnly;
+                                    }
+                                    setClientPhone(value);
+                                  }
+                                }}
+                                onKeyDown={(e) => {
+                                  // Faqat raqamlar, backspace, delete, arrow keys, space va tabni ruxsat berish
+                                  const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', ' '];
+                                  if (!/^\d$/.test(e.key) && !allowedKeys.includes(e.key)) {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                placeholder="90 123 45 67"
+                                className="w-full pl-12 sm:pl-16 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                                required
+                              />
+                            </div>
+                            <div className="mt-1 text-xs text-gray-500">
+                              <p>Operator kodlari: 90, 91, 93, 94, 95, 97, 98, 99</p>
+                              <p>Format: 90 123 45 67</p>
+                            </div>
+                          </div>
                         </div>
-                        <input
-                          type="tel"
-                          value={clientPhone}
-                          onChange={(e) => {
-                            let value = e.target.value.replace(/[^\d\s]/g, '');
-                            const numbersOnly = value.replace(/\s/g, '');
-
-                            // Maksimum 9 ta raqam
-                            if (numbersOnly.length <= 9) {
-                              // Avtomatik formatlash: XX XXX XX XX
-                              if (numbersOnly.length >= 2) {
-                                value = numbersOnly.substring(0, 2);
-                                if (numbersOnly.length >= 3) {
-                                  value += ' ' + numbersOnly.substring(2, 5);
-                                }
-                                if (numbersOnly.length >= 6) {
-                                  value += ' ' + numbersOnly.substring(5, 7);
-                                }
-                                if (numbersOnly.length >= 8) {
-                                  value += ' ' + numbersOnly.substring(7, 9);
-                                }
-                              } else {
-                                value = numbersOnly;
-                              }
-                              setClientPhone(value);
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            // Faqat raqamlar, backspace, delete, arrow keys, space va tabni ruxsat berish
-                            const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', ' '];
-                            if (!/^\d$/.test(e.key) && !allowedKeys.includes(e.key)) {
-                              e.preventDefault();
-                            }
-                          }}
-                          placeholder="90 123 45 67"
-                          className="w-full pl-12 sm:pl-16 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                          required
-                        />
                       </div>
-                      <div className="mt-1 text-xs text-gray-500">
-                        <p>Operator kodlari: 90, 91, 93, 94, 95, 97, 98, 99</p>
-                        <p>Format: 90 123 45 67</p>
+
+                      {/* Action Button */}
+                      <div className="bg-white rounded-lg p-3 sm:p-6 border shadow-sm">
+                        <button
+                          onClick={handleBooking}
+                          disabled={!selectedDate || !clientName.trim() || clientPhone.replace(/\s/g, '').length < 9 || !selectedTime || !selectedEndTime}
+                          className={`w-full flex items-center justify-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-3 sm:py-4 rounded-lg transition-all font-bold text-sm sm:text-lg shadow-lg ${
+                            selectedDate && clientName.trim() && clientPhone.replace(/\s/g, '').length >= 9 && selectedTime && selectedEndTime
+                              ? 'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700 transform hover:scale-105'
+                              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          }`}
+                        >
+                          <Check className="w-4 h-4 sm:w-6 sm:h-6" />
+                          <span className="text-center leading-tight">
+                            {!selectedDate ? 'Avval sana tanlang' :
+                             !selectedTime || !selectedEndTime ? 'Vaqt oralig\'ini tanlang' :
+                             !clientName.trim() ? 'Ism familiyani kiriting' :
+                             clientPhone.replace(/\s/g, '').length < 9 ? 'To\'liq telefon raqam kiriting' :
+                             'Band Qilish'}
+                          </span>
+                        </button>
+
+                        {selectedDate && (
+                          <div className="mt-2 sm:mt-3 text-center">
+                            <p className="text-xs sm:text-sm text-gray-600">
+                              {new Date(selectedDate).toLocaleDateString('uz-UZ', {
+                                weekday: 'long',
+                                day: 'numeric',
+                                month: 'long'
+                              })} kuni band qilinyapti
+                            </p>
+                          </div>
+                        )}
                       </div>
-                    </div>
-
-
-                  </div>
-                </div>
-
-                {/* Action Button */}
-                <div className="bg-white rounded-lg p-3 sm:p-6 border shadow-sm">
-                  <button
-                    onClick={handleBooking}
-                    disabled={!selectedDate || !clientName.trim() || clientPhone.replace(/\s/g, '').length < 9 || !selectedTime || !selectedEndTime}
-                    className={`w-full flex items-center justify-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-3 sm:py-4 rounded-lg transition-all font-bold text-sm sm:text-lg shadow-lg ${
-                      selectedDate && clientName.trim() && clientPhone.replace(/\s/g, '').length >= 9 && selectedTime && selectedEndTime
-                        ? 'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700 transform hover:scale-105'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    <Check className="w-4 h-4 sm:w-6 sm:h-6" />
-                    <span className="text-center leading-tight">
-                      {!selectedDate ? 'Avval sana tanlang' :
-                       !selectedTime || !selectedEndTime ? 'Vaqt oralig\'ini tanlang' :
-                       !clientName.trim() ? 'Ism familiyani kiriting' :
-                       clientPhone.replace(/\s/g, '').length < 9 ? 'To\'liq telefon raqam kiriting' :
-                       'Band Qilish'}
-                    </span>
-                  </button>
-
-                  {selectedDate && (
-                    <div className="mt-2 sm:mt-3 text-center">
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        {new Date(selectedDate).toLocaleDateString('uz-UZ', {
-                          weekday: 'long',
-                          day: 'numeric',
-                          month: 'long'
-                        })} kuni band qilinyapti
-                      </p>
-                    </div>
-                  )}
-                </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
@@ -1453,7 +2065,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
           </div>
 
               {/* Modal Footer */}
-              <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex justify-end space-x-2 sm:space-x-3 sticky bottom-0 sm:static">
+              <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex justify-between space-x-2 sm:space-x-3 sticky bottom-0 sm:static">
+                <button
+                  onClick={() => setShowPricingModal(true)}
+                  className="flex items-center space-x-2 px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all font-medium text-sm sm:text-base shadow-md"
+                >
+                  <Calculator className="w-4 h-4" />
+                  <span>Narxlar va Ovqatlar</span>
+                </button>
                 <button
                   onClick={() => setShowBookingModal(false)}
                   className="px-4 sm:px-6 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base"
@@ -1465,258 +2084,277 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ user }) => {
           </div>
         )}
 
-        {/* Booking Details Modal - Band qilingan kunlar uchun faqat band vaqtlar */}
-        {showBookingDetailsModal && selectedBookingDetails && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-0 sm:p-4">
-            <div className="bg-white w-full h-full sm:h-auto sm:max-w-4xl sm:rounded-xl shadow-2xl sm:max-h-[95vh] overflow-y-auto">
-              {/* Modal Header - Sticky */}
-              <div className="bg-gradient-to-r from-red-50 via-orange-50 to-yellow-50 border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between sticky top-0 z-20 shadow-sm">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base sm:text-xl font-bold text-gray-900 flex items-center">
-                    <X className="w-4 h-4 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-red-600 flex-shrink-0" />
-                    <span className="truncate text-sm sm:text-base">Band Qilingan Kun</span>
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                    {new Date(selectedBookingDetails.date).toLocaleDateString('uz-UZ', {
+        {/* Confirmation Modal */}
+        {showConfirmationModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-2 sm:p-4">
+            <div className="bg-white w-full max-w-md sm:rounded-xl shadow-2xl p-4 sm:p-6 mx-2">
+              {/* Modal Header */}
+              <div className="text-center mb-4 sm:mb-6">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <Check className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+                  Rezervatsiyani Tasdiqlang
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Quyidagi ma'lumotlarni tekshiring va tasdiqlang
+                </p>
+              </div>
+
+              {/* Booking Details */}
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 space-y-2 sm:space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Sana:</span>
+                  <span className="font-medium text-sm sm:text-base">
+                    {new Date(selectedDate).toLocaleDateString('uz-UZ', {
                       weekday: 'long',
                       day: 'numeric',
-                      month: 'long',
-                      year: 'numeric'
-                    })} - Bu kun to'liq band qilingan
-                  </p>
+                      month: 'long'
+                    })}
+                  </span>
                 </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Vaqt:</span>
+                  <span className="font-medium text-sm sm:text-base">
+                    {selectedTime} - {selectedEndTime}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Davomiylik:</span>
+                  <span className="font-medium text-sm sm:text-base">
+                    {(() => {
+                      const [startHour, startMin] = selectedTime.split(':').map(Number);
+                      const [endHour, endMin] = selectedEndTime.split(':').map(Number);
+                      const totalMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+                      const hours = Math.floor(totalMinutes / 60);
+                      const minutes = totalMinutes % 60;
+                      return hours > 0 && minutes > 0
+                        ? `${hours} soat ${minutes} daqiqa`
+                        : hours > 0
+                          ? `${hours} soat`
+                          : `${minutes} daqiqa`;
+                    })()}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Mijoz:</span>
+                  <span className="font-medium text-sm sm:text-base">{clientName}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Telefon:</span>
+                  <span className="font-medium text-sm sm:text-base">+998 {clientPhone}</span>
+                </div>
+
+                <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                  <span className="text-sm font-medium text-gray-700">Jami Narx:</span>
+                  <span className="font-bold text-lg text-green-600">
+                    ${(() => {
+                      const [startHour] = selectedTime.split(':').map(Number);
+                      const [endHour, endMin] = selectedEndTime.split(':').map(Number);
+                      const totalMinutes = (endHour * 60 + endMin) - (startHour * 60);
+                      const hours = Math.ceil(totalMinutes / 60);
+                      const hourlyRate = startHour >= 18 ? 400 : startHour >= 10 ? 300 : 200;
+                      return hours * hourlyRate;
+                    })()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-3">
                 <button
-                  onClick={() => {
-                    setShowBookingDetailsModal(false);
-                    setSelectedBookingDetails(null);
-                  }}
-                  className="text-gray-500 hover:text-gray-700 text-lg sm:text-2xl p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 ml-2"
+                  onClick={() => setShowConfirmationModal(false)}
+                  className="flex-1 px-4 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base font-medium"
                 >
-                  ✕
+                  Bekor Qilish
                 </button>
-              </div>
-
-              {/* Modal Content - Scrollable */}
-              <div className="p-3 sm:p-6">
-                <div className="space-y-4 sm:space-y-5">
-
-                  {/* 1. Band qilingan vaqtlar ro'yxati */}
-                  <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-xl p-4 sm:p-6 border-2 border-red-200 shadow-md">
-                    <h4 className="font-bold text-red-900 mb-4 flex items-center justify-center text-base sm:text-lg">
-                      🚫 {new Date(selectedBookingDetails.date).toLocaleDateString('uz-UZ', {
-                        day: 'numeric',
-                        month: 'long'
-                      })} - Band Qilingan Vaqtlar
-                    </h4>
-
-                    <div className="bg-white rounded-lg p-3 mb-4 border border-red-200">
-                      <p className="text-xs sm:text-sm text-center text-red-700">
-                        ⚠️ Bu kun quyidagi vaqtlarda band qilingan
-                      </p>
-                    </div>
-
-                    {/* Faqat band qilingan vaqtlar ko'rsatish */}
-                    <div className="space-y-3">
-                      {bookedTimeSlots
-                        .filter(slot => slot.date === selectedBookingDetails.date)
-                        .map((booking) => (
-                          <div key={booking.id} className="bg-white rounded-lg p-4 border-2 border-red-300 shadow-sm">
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-                                <h5 className="font-bold text-red-900 text-sm sm:text-base">
-                                  {booking.clientName}
-                                </h5>
-                              </div>
-                              <div className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded-full">
-                                Band qilingan
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
-                              <div className="bg-red-50 rounded-lg p-3 border border-red-200 text-center">
-                                <div className="text-xs text-red-600 font-medium mb-1">⏰ VAQT</div>
-                                <div className="font-bold text-red-900 text-sm">
-                                  {booking.time} - {booking.endTime}
-                                </div>
-                              </div>
-                              <div className="bg-orange-50 rounded-lg p-3 border border-orange-200 text-center">
-                                <div className="text-xs text-orange-600 font-medium mb-1">⏱️ DAVOMIYLIK</div>
-                                <div className="font-bold text-orange-900 text-sm">{booking.duration}</div>
-                              </div>
-                              <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200 text-center">
-                                <div className="text-xs text-yellow-600 font-medium mb-1">💰 NARX</div>
-                                <div className="font-bold text-yellow-900 text-sm">${booking.price}</div>
-                              </div>
-                            </div>
-
-                            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">📞 Telefon:</span>
-                                  <span className="font-medium text-gray-800">{booking.clientPhone}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">🆔 ID:</span>
-                                  <span className="font-mono text-xs text-gray-800">{booking.id}</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Band qilingan soatlar ko'rsatish */}
-                            <div className="mt-3 bg-red-50 rounded-lg p-3 border border-red-200">
-                              <div className="text-xs font-medium text-red-700 mb-2 text-center">
-                                🕒 Band qilingan soatlar:
-                              </div>
-                              <div className="flex flex-wrap justify-center gap-1">
-                                {Array.from({ length: 15 }, (_, i) => {
-                                  const hour = i + 8;
-                                  const timeStr = `${hour.toString().padStart(2, '0')}:00`;
-                                  
-                                  const [startHour] = booking.time.split(':').map(Number);
-                                  const [endHour] = booking.endTime.split(':').map(Number);
-                                  const isBookedHour = hour >= startHour && hour < endHour;
-
-                                  if (!isBookedHour) return null;
-
-                                  return (
-                                    <div 
-                                      key={hour}
-                                      className="bg-red-200 border border-red-400 rounded px-2 py-1 text-xs font-medium text-red-800"
-                                    >
-                                      {timeStr}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-
-                  {/* 2. Mavjud vaqtlar (agar bor bo'lsa) */}
-                  {(() => {
-                    const availableHours = Array.from({ length: 15 }, (_, i) => {
-                      const hour = i + 8;
-                      const timeStr = `${hour.toString().padStart(2, '0')}:00`;
-                      
-                      // Bu soat biron bir booking-da band qilinganmi tekshirish
-                      const isBooked = bookedTimeSlots.some(slot => {
-                        if (slot.date !== selectedBookingDetails.date) return false;
-                        const [startHour] = slot.time.split(':').map(Number);
-                        const [endHour] = slot.endTime.split(':').map(Number);
-                        return hour >= startHour && hour < endHour;
-                      });
-
-                      return !isBooked ? timeStr : null;
-                    }).filter(Boolean);
-
-                    if (availableHours.length > 0) {
-                      return (
-                        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-4 border-2 border-green-200 shadow-md">
-                          <h4 className="font-bold text-green-900 mb-4 flex items-center justify-center text-base sm:text-lg">
-                            ✅ Bu Kunda Mavjud Vaqtlar
-                          </h4>
-                          
-                          <div className="bg-white rounded-lg p-3 mb-3 border border-green-200">
-                            <p className="text-xs sm:text-sm text-center text-green-700">
-                              📝 Quyidagi vaqtlarda buyurtma berishingiz mumkin
-                            </p>
-                          </div>
-
-                          <div className="flex flex-wrap justify-center gap-2">
-                            {availableHours.map(timeStr => (
-                              <button
-                                key={timeStr}
-                                onClick={() => {
-                                  setSelectedDate(selectedBookingDetails.date);
-                                  setShowBookingDetailsModal(false);
-                                  setSelectedBookingDetails(null);
-                                  setShowBookingModal(true);
-                                }}
-                                className="bg-green-100 border-2 border-green-300 rounded-lg px-3 py-2 text-sm font-medium text-green-800 hover:bg-green-200 hover:border-green-400 transition-colors"
-                              >
-                                {timeStr}
-                              </button>
-                            ))}
-                          </div>
-
-                          <div className="mt-3 text-center">
-                            <button
-                              onClick={() => {
-                                setSelectedDate(selectedBookingDetails.date);
-                                setShowBookingDetailsModal(false);
-                                setSelectedBookingDetails(null);
-                                setShowBookingModal(true);
-                              }}
-                              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-                            >
-                              ➕ Bu Kunga Buyurtma Berish
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
-
-                  {/* 3. Boshqa kunlar taklifi */}
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border-2 border-blue-200">
-                    <h5 className="font-bold text-blue-900 mb-3 text-center">💡 Tavsiya</h5>
-                    <div className="text-center space-y-3">
-                      <p className="text-sm text-blue-700">
-                        Bu kun band bo'lgani uchun, boshqa mavjud kunlardan birini tanlashingiz mumkin.
-                      </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <button
-                          onClick={() => {
-                            setShowBookingDetailsModal(false);
-                            setSelectedBookingDetails(null);
-                            setShowBookingModal(true);
-                          }}
-                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                        >
-                          📅 Boshqa Kun Tanlash
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowBookingDetailsModal(false);
-                            setSelectedBookingDetails(null);
-                            setShowPricingModal(true);
-                          }}
-                          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
-                        >
-                          💰 Narxlarni Ko'rish
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Modal Footer - Sticky */}
-              <div className="bg-gradient-to-r from-gray-50 to-red-50 px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex justify-between items-center sticky bottom-0 z-20 shadow-lg sm:shadow-none">
-                <div className="text-xs text-gray-600 sm:text-sm">
-                  🚫 Band qilingan kun: {new Date(selectedBookingDetails.date).toLocaleDateString('uz-UZ', {
-                    day: 'numeric',
-                    month: 'short'
-                  })}
-                </div>
                 <button
-                  onClick={() => {
-                    setShowBookingDetailsModal(false);
-                    setSelectedBookingDetails(null);
-                  }}
-                  className="px-4 sm:px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium shadow-sm"
+                  onClick={confirmBooking}
+                  className="flex-1 px-4 py-2 sm:py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all font-medium text-sm sm:text-base shadow-md"
                 >
-                  ✅ Yopish
+                  Tasdiqlash
                 </button>
               </div>
             </div>
           </div>
         )}
+
+        {/* Save Calculation Confirmation Modal */}
+        {showSaveCalculationModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80] p-2 sm:p-4" data-save-modal>
+            <div className="bg-white w-full max-w-lg sm:rounded-xl shadow-2xl p-4 sm:p-6 mx-2 modal-content">
+              {/* Modal Header */}
+              <div className="text-center mb-4 sm:mb-6">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <Calculator className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+                  Hisob-kitobni Tasdiqlang
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Quyidagi hisob-kitob ma'lumotlarini saqlashni xohlaysizmi?
+                </p>
+              </div>
+
+              {/* Calculation Details */}
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 space-y-2 sm:space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Mehmonlar soni:</span>
+                  <span className="font-medium text-sm sm:text-base">
+                    {guestCount === 0 ? 'Belgilanmagan' : `${guestCount} kishi`}
+                  </span>
+                </div>
+
+                {selectedPricing && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Tanlangan paket:</span>
+                    <span className="font-medium text-sm sm:text-base">{selectedPricing.name}</span>
+                  </div>
+                )}
+
+                {selectedPricing && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Paket narxi:</span>
+                    <span className="font-medium text-sm sm:text-base">
+                      ${guestCount === 0 ? 0 : selectedPricing.price * guestCount}
+                    </span>
+                  </div>
+                )}
+
+                {selectedMenuItems.length > 0 && (
+                  <div className="border-t pt-2">
+                    <div className="text-sm font-medium text-gray-700 mb-2">Qo'shimcha ovqatlar:</div>
+                    {selectedMenuItems.map(item => (
+                      <div key={item.id} className="flex justify-between items-center text-xs mb-1">
+                        <span>{item.name} × {item.quantity}</span>
+                        <span>${item.price * item.quantity}</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between items-center text-sm font-medium text-gray-700 pt-1 border-t">
+                      <span>Ovqatlar jami:</span>
+                      <span>${selectedMenuItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)}</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                  <span className="text-sm font-bold text-gray-900">Umumiy jami:</span>
+                  <span className="font-bold text-lg text-green-600">
+                    ${calculateTotal()}
+                  </span>
+                </div>
+
+                <div className="text-center pt-2 border-t border-gray-200">
+                  <div className="text-xs text-gray-500">
+                    Sana: {new Date().toLocaleDateString('uz-UZ', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Vaqt: {new Date().toLocaleTimeString('uz-UZ', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowSaveCalculationModal(false)}
+                  className="flex-1 px-4 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base font-medium"
+                >
+                  Bekor Qilish
+                </button>
+                <button
+                  onClick={() => {
+                    // Hisob-kitobni saqlash logic
+                    const calculationData = {
+                      id: 'calc-' + Date.now(),
+                      date: new Date().toISOString(),
+                      guestCount,
+                      selectedPricing,
+                      selectedMenuItems,
+                      totalAmount: calculateTotal(),
+                      timestamp: new Date().toLocaleString('uz-UZ')
+                    };
+
+                    // LocalStorage ga saqlash
+                    try {
+                      const saved = localStorage.getItem('savedCalculations') || '[]';
+                      const calculations = JSON.parse(saved);
+                      calculations.push(calculationData);
+                      localStorage.setItem('savedCalculations', JSON.stringify(calculations));
+                      
+                      // Muvaffaqiyat holatini ko'rsatish
+                      setTimeout(() => {
+                        setShowSaveCalculationModal(false);
+                        setShowPricingModal(false);
+                      }, 1500); // 1.5 soniya kutish
+                      
+                      // Modalda muvaffaqiyat xabarini ko'rsatish
+                      const modal = document.querySelector('[data-save-modal]');
+                      if (modal) {
+                        const content = modal.querySelector('.modal-content');
+                        if (content) {
+                          content.innerHTML = `
+                            <div class="text-center py-8">
+                              <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                              </div>
+                              <h3 class="text-xl font-bold text-gray-900 mb-2">Muvaffaqiyatli Saqlandi!</h3>
+                              <p class="text-gray-600">Hisob-kitob ma'lumotlari saqlandi.</p>
+                            </div>
+                          `;
+                        }
+                      }
+                    } catch (error) {
+                      console.error('Error saving calculation:', error);
+                      // Error holatida ham alert o'rniga modal ichida xabar ko'rsatish
+                      const modal = document.querySelector('[data-save-modal]');
+                      if (modal) {
+                        const content = modal.querySelector('.modal-content');
+                        if (content) {
+                          content.innerHTML = `
+                            <div class="text-center py-8">
+                              <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                              </div>
+                              <h3 class="text-xl font-bold text-gray-900 mb-2">Xatolik Yuz Berdi!</h3>
+                              <p class="text-gray-600">Hisob-kitobni saqlashda muammo yuzaga keldi.</p>
+                            </div>
+                          `;
+                        }
+                      }
+                      setTimeout(() => {
+                        setShowSaveCalculationModal(false);
+                      }, 2000);
+                    }
+                  }}
+                  className="flex-1 px-4 py-2 sm:py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all font-medium text-sm sm:text-base shadow-md"
+                >
+                  Saqlash
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+
+
+
       </div>
     </div>
   );
